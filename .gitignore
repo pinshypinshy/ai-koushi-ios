@@ -1,0 +1,41 @@
+# ---- Xcode：個人の設定・作業状態 ----
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# ---- ビルド成果物 ----
+DerivedData/
+build/
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcarchive
+
+# ---- テスト結果 ----
+*.xcresult
+
+# ---- Swift Package Manager ----
+# Package.resolved はコミットする（TCA などのバージョンを固定するため）
+.build/
+.swiftpm/
+
+# ---- 秘密情報・手元だけの設定 ----
+*.local.xcconfig
+Secrets.xcconfig
+.env
+.env.*
+
+# ---- 手元だけのファイル ----
+CLAUDE.local.md
+notes/
+
+# ---- Claude Code：個人の設定 ----
+# 共有する設定（.claude/settings.json）はコミットし、個人の設定だけ除外する
+.claude/settings.local.json
+
+# ---- OS・エディタ ----
+.DS_Store
+*.swp
+.vscode/
+.idea/

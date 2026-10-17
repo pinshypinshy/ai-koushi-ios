@@ -6,11 +6,11 @@
 //
 
 public struct ApiError: Decodable, Equatable, Sendable {
-  public let error: String
-  public let message: String
-
-  public init(error: String, message: String) {
-    self.error = error
-    self.message = message
-  }
+    public let error: String
+    public let message: String
+    
+    public init(error: String, message: String) {
+        self.error = error
+        self.message = message
+    }
 }

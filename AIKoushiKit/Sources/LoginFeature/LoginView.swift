@@ -6,6 +6,7 @@
 //
 
 import ComposableArchitecture
+import SharedUI
 import SwiftUI
 
 public struct LoginView: View {
@@ -40,7 +41,7 @@ public struct LoginView: View {
             if let message = store.errorMessage {
                 Text(message)
                     .font(.footnote)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(AppColor.error)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 

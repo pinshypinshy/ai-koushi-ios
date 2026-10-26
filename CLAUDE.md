@@ -120,6 +120,7 @@ AIKoushiKit/                 … ローカルパッケージ
 - 通信などの副作用は Effect の中に閉じる。Effect からは Action を送り返すだけ
 - 外部とのやり取り（API、時刻、乱数など）は必ず Dependency を通す。テストで差し替えるため
 - 途中でキャンセルされうる Effect（受信中の講義など）には、キャンセル用の ID を付ける
+- Action に `Result` を使わず、成功と失敗を別の case にする（`Result` の case をたどる key path がコンパイラをクラッシュさせるため。Swift 6.3.3・swift-case-paths 1.10.0 で確認）
 - Feature を追加・変更したら、`REQUIREMENTS.md` に書かれた振る舞いを TestStore のテストで確かめる
 
 ### 範囲

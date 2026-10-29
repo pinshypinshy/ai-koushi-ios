@@ -63,6 +63,7 @@ AIKoushiKit/                 … ローカルパッケージ
 ├── Package.swift
 ├── Sources/
 │   ├── Models/              … API の型（shared/api.ts に対応）。何にも依存しない
+│   ├── AppConfig/           … アプリ全体で共有する設定値（本番の URL など）。何にも依存しない
 │   ├── APIClient/           … API クライアントのインターフェース（Dependency）
 │   ├── APIClientLive/       … URLSession による実装。アプリ本体と自身のテストだけが import する
 │   ├── SharedUI/            … 複数の Feature で使う View 部品

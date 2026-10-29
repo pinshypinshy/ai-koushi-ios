@@ -7,6 +7,7 @@
 
 import APIClient
 @testable import APIClientLive
+import AppConfig
 import Foundation
 import Models
 import os
@@ -15,7 +16,7 @@ import Testing
 // StubURLProtocol の応答はテスト同士で共有するため、並列に実行しない
 @Suite(.serialized)
 struct APIClientLiveTests {
-    let baseURL = APIClient.productionBaseURL
+    let baseURL = ServerURL.production
     let session: URLSession
     let client: APIClient
     

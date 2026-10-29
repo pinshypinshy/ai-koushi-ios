@@ -6,15 +6,13 @@
 //
 
 import APIClient
+import AppConfig
 import ComposableArchitecture
 import Foundation
 import Models
 
 extension APIClient: DependencyKey {
-    // 固定の文字列リテラルで、URL として解釈できないことが無いため強制アンラップしている
-    static let productionBaseURL = URL(string: "https://ai-koushi.yuki-hiraishi.com")!
-    
-    public static let liveValue = APIClient.live(baseURL: productionBaseURL, session: .shared)
+    public static let liveValue = APIClient.live(baseURL: ServerURL.production, session: .shared)
     
     /// テストで URLSession を差し替えるため、組み立てを関数に分けている
     static func live(baseURL: URL, session: URLSession) -> APIClient {

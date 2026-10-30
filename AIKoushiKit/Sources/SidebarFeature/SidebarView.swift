@@ -19,6 +19,14 @@ public struct SidebarView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
+            Text("AI講師")
+                .font(.title2.bold())
+                .foregroundStyle(AppColor.primaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .accessibilityAddTraits(.isHeader)
+
             // 0件のときも引っ張って取り直せるよう、案内文も List の中に置く
             List {
                 if let message = store.refreshErrorMessage {
@@ -26,11 +34,15 @@ public struct SidebarView: View {
                         .font(.footnote)
                         .foregroundStyle(AppColor.error)
                         .listRowBackground(Color.clear)
+                        .listRowInsets(Self.rowInsets)
+                        .listRowSeparator(.hidden)
                 }
                 if store.courses.isEmpty {
                     Text("講義はまだありません")
                         .foregroundStyle(AppColor.secondaryText)
                         .listRowBackground(Color.clear)
+                        .listRowInsets(Self.rowInsets)
+                        .listRowSeparator(.hidden)
                 } else {
                     ForEach(store.courses) { course in
                         courseRow(course)
@@ -45,11 +57,13 @@ public struct SidebarView: View {
 
             Divider()
             UsageMeterView(usage: store.usage)
-                .padding()
+                .padding(.horizontal, 20)
+                .padding(.vertical)
 
             Divider()
             userMenu
-                .padding()
+                .padding(.horizontal, 20)
+                .padding(.vertical)
         }
         .background(AppColor.sidebarBackground)
     }
@@ -66,8 +80,16 @@ public struct SidebarView: View {
                 CourseStatusLabel(course: course)
             }
         }
-        .listRowBackground(course.id == store.selectedCourseID ? AppColor.selectedRowBackground : Color.clear)
+        .listRowBackground(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(course.id == store.selectedCourseID ? AppColor.selectedRowBackground : Color.clear)
+                .padding(.horizontal, 8)
+        )
+        .listRowInsets(Self.rowInsets)
+        .listRowSeparator(.hidden)
     }
+
+    private static let rowInsets = EdgeInsets(top: 14, leading: 20, bottom: 14, trailing: 20)
 
     private var userMenu: some View {
         Menu {

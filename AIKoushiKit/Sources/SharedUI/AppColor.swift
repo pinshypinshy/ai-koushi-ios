@@ -15,6 +15,7 @@ public enum AppColor {
 
     public static let sidebarBackground = Color(uiColor: .systemBackground)
     public static let selectedRowBackground = Color(uiColor: .secondarySystemFill)
+    public static let dimming = Color.black.opacity(0.4)
 
     public static let usageTrack = Color(uiColor: .systemFill)
     public static let usageNormal = Color.accentColor

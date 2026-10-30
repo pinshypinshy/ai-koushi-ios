@@ -32,7 +32,7 @@ let package = Package(
         .testTarget(name: "LoginFeatureTests", dependencies: ["LoginFeature", "APIClient", "Models", tca]),
         .testTarget(name: "SidebarFeatureTests", dependencies: ["SidebarFeature", "APIClient", "Models", tca]),
         .testTarget(name: "CourseFeatureTests", dependencies: ["CourseFeature", "Models", tca]),
-        .testTarget(name: "AppFeatureTests", dependencies: ["AppFeature", "APIClient", "Models", tca]),
+        .testTarget(name: "AppFeatureTests", dependencies: ["AppFeature", "LoginFeature", "SidebarFeature", "CourseFeature", "APIClient", "Models", tca]),
     ],
     swiftLanguageModes: [.v6]
 )

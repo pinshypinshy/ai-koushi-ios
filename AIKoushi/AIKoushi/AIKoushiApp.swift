@@ -5,13 +5,20 @@
 //  Created by 平石悠生 on 2026/10/13.
 //
 
+import APIClientLive
+import AppFeature
+import ComposableArchitecture
 import SwiftUI
 
 @main
 struct AIKoushiApp: App {
+    let store = Store(initialState: AppFeature.State.launching) {
+        AppFeature()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppView(store: store)
         }
     }
 }

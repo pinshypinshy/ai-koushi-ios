@@ -19,7 +19,7 @@ struct MainView: View {
 
     private static let snapAnimation = Animation.snappy(duration: 0.2)
     // これより速く払ったら、ずれた量に関係なく払った向きに従う（§3.4）
-    private static let flickVelocity: CGFloat = 300
+    private static let flickVelocity: CGFloat = 200
 
     var body: some View {
         GeometryReader { geometry in

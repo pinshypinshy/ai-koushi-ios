@@ -65,6 +65,7 @@ public struct LoginView: View {
     }
 }
 
+#if DEBUG
 #Preview("入力前") {
     LoginView(store: Store(initialState: LoginFeature.State()) { LoginFeature() })
 }
@@ -82,3 +83,4 @@ public struct LoginView: View {
         }
     )
 }
+#endif

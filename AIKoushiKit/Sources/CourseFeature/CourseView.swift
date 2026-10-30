@@ -56,6 +56,7 @@ public struct CourseView: View {
     }
 }
 
+#if DEBUG
 #Preview("講義あり") {
     CourseView(store: Store(initialState: CourseFeature.State(course: .preview(status: .ready))) { CourseFeature() })
 }
@@ -80,3 +81,4 @@ private extension CourseSummary {
         )
     }
 }
+#endif

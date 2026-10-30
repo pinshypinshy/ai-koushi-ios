@@ -36,6 +36,7 @@ struct MainView: View {
     }
 }
 
+#if DEBUG
 #Preview("講義あり") {
     MainView(store: Store(initialState: MainFeature.State(bootstrap: .preview(courses: .preview))) { MainFeature() })
 }
@@ -66,3 +67,4 @@ extension [CourseSummary] {
         CourseSummary(id: "c2", title: "確率と統計", status: .generating, quizStatus: .pending, phase: .outline, errorMessage: nil, totalSteps: 0, completedSteps: 0, updatedAt: 0),
     ]
 }
+#endif

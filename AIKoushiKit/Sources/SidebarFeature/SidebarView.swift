@@ -91,6 +91,7 @@ public struct SidebarView: View {
     }
 }
 
+#if DEBUG
 #Preview("講義あり") {
     SidebarView(store: Store(initialState: SidebarFeature.State(bootstrap: .preview(courses: .preview, costUsd: 0.85))) {
         SidebarFeature()
@@ -126,3 +127,4 @@ private extension [CourseSummary] {
         CourseSummary(id: "c3", title: "微分方程式", status: .failed, quizStatus: .failed, phase: nil, errorMessage: "生成に失敗", totalSteps: 0, completedSteps: 0, updatedAt: 0),
     ]
 }
+#endif

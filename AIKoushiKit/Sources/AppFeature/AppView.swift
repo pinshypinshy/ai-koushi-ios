@@ -57,6 +57,7 @@ public struct AppView: View {
     }
 }
 
+#if DEBUG
 // .task が bootstrap を呼んで状態を変えてしまうため、Reducer を空にして見た目だけを確かめる。
 // 各画面の操作は LoginView・MainView のプレビューで確かめる
 #Preview("読み込み中") {
@@ -82,3 +83,4 @@ public struct AppView: View {
 #Preview("メイン画面") {
     AppView(store: Store(initialState: .main(MainFeature.State(bootstrap: .preview(courses: .preview)))) { EmptyReducer() })
 }
+#endif

@@ -28,7 +28,9 @@ public struct MainFeature {
     public enum Action {
         case sidebar(SidebarFeature.Action)
         case course(CourseFeature.Action)
-        case dimmingTapped
+        case sidebarSwipedOpen
+        case sidebarSwipedClosed
+        case peekingMainTapped
         case delegate(Delegate)
 
         @CasePathable
@@ -44,11 +46,11 @@ public struct MainFeature {
             Scope(state: \.course, action: \.course) { CourseFeature() }
             Reduce { state, action in
                 switch action {
-                case .course(.delegate(.sidebarRequested)):
+                case .course(.delegate(.sidebarRequested)), .sidebarSwipedOpen:
                     state.isSidebarOpen = true
                     return .none
 
-                case .sidebar(.delegate(.courseSelected)), .dimmingTapped:
+                case .sidebar(.delegate(.courseSelected)), .sidebarSwipedClosed, .peekingMainTapped:
                     state.isSidebarOpen = false
                     return .none
 

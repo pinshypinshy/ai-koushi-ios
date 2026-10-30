@@ -14,25 +14,75 @@ import SwiftUI
 
 struct MainView: View {
     let store: StoreOf<MainFeature>
+    // 指を離したら、開閉と同じアニメーションで元に戻す
+    @GestureState(resetTransaction: Transaction(animation: Self.snapAnimation)) private var dragTranslation: CGFloat = 0
+
+    private static let snapAnimation = Animation.snappy(duration: 0.2)
+    // これより速く払ったら、ずれた量に関係なく払った向きに従う（§3.4）
+    private static let flickVelocity: CGFloat = 300
 
     var body: some View {
-        ZStack(alignment: .leading) {
-            CourseView(store: store.scope(state: \.course, action: \.course))
+        GeometryReader { geometry in
+            let sidebarWidth = geometry.size.width * 0.8
+            let offset = mainOffset(sidebarWidth: sidebarWidth)
+            let progress = offset / sidebarWidth
 
-            if store.isSidebarOpen {
-                AppColor.dimming
-                    .ignoresSafeArea()
-                    .onTapGesture { store.send(.dimmingTapped) }
-                    .accessibilityLabel("サイドバーを閉じる")
-                    .accessibilityAddTraits(.isButton)
-                    .transition(.opacity)
-
+            ZStack(alignment: .leading) {
                 SidebarView(store: store.scope(state: \.sidebar, action: \.sidebar))
-                    .containerRelativeFrame(.horizontal) { width, _ in width * 0.8 }
-                    .transition(.move(edge: .leading))
+                    .frame(width: sidebarWidth)
+                    .accessibilityHidden(!store.isSidebarOpen)
+
+                CourseView(store: store.scope(state: \.course, action: \.course))
+                    .allowsHitTesting(!store.isSidebarOpen)
+                    .accessibilityHidden(store.isSidebarOpen)
+                    .overlay {
+                        if store.isSidebarOpen {
+                            Color.clear
+                                .contentShape(.rect)
+                                .ignoresSafeArea()
+                                .onTapGesture { store.send(.peekingMainTapped) }
+                                .accessibilityLabel("サイドバーを閉じる")
+                                .accessibilityAddTraits(.isButton)
+                        }
+                    }
+                    // ステータスバーの裏まで丸めるため、切り抜きの形も安全領域を越えさせる
+                    .mask {
+                        RoundedRectangle(cornerRadius: 40 * progress)
+                            .ignoresSafeArea()
+                    }
+                    .shadow(radius: 8 * progress)
+                    .offset(x: offset)
             }
+            .simultaneousGesture(dragGesture(sidebarWidth: sidebarWidth))
         }
-        .animation(.default, value: store.isSidebarOpen)
+        .animation(Self.snapAnimation, value: store.isSidebarOpen)
+        .sensoryFeedback(.impact(weight: .light), trigger: store.isSidebarOpen)
+    }
+
+    private func mainOffset(sidebarWidth: CGFloat) -> CGFloat {
+        let base = store.isSidebarOpen ? sidebarWidth : 0
+        return min(max(base + dragTranslation, 0), sidebarWidth)
+    }
+
+    private func dragGesture(sidebarWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 10)
+            .updating($dragTranslation) { value, state, _ in
+                // 縦の動きはサイドバーの一覧のスクロールに任せる
+                guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                state = value.translation.width
+            }
+            .onEnded { value in
+                guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                let shouldOpen: Bool
+                if abs(value.velocity.width) >= Self.flickVelocity {
+                    shouldOpen = value.velocity.width > 0
+                } else {
+                    let base = store.isSidebarOpen ? sidebarWidth : 0
+                    shouldOpen = base + value.translation.width > sidebarWidth / 2
+                }
+                guard shouldOpen != store.isSidebarOpen else { return }
+                store.send(shouldOpen ? .sidebarSwipedOpen : .sidebarSwipedClosed)
+            }
     }
 }
 

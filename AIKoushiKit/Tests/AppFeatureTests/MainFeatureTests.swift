@@ -44,14 +44,23 @@ struct MainFeatureTests {
         await store.receive(\.sidebar.delegate.courseSelected) { $0.isSidebarOpen = false }
     }
 
-    @Test func tappingDimmingClosesSidebarWithoutChangingSelection() async {
+    @Test func tappingPeekingMainClosesSidebarWithoutChangingSelection() async {
         var initial = MainFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))
         initial.isSidebarOpen = true
         let store = TestStore(initialState: initial) {
             MainFeature()
         }
 
-        await store.send(.dimmingTapped) { $0.isSidebarOpen = false }
+        await store.send(.peekingMainTapped) { $0.isSidebarOpen = false }
+    }
+
+    @Test func swipesOpenAndCloseSidebar() async {
+        let store = TestStore(initialState: MainFeature.State(bootstrap: .mock(courses: [.mock("c1")]))) {
+            MainFeature()
+        }
+
+        await store.send(.sidebarSwipedOpen) { $0.isSidebarOpen = true }
+        await store.send(.sidebarSwipedClosed) { $0.isSidebarOpen = false }
     }
 
     @Test func courseFollowsRefreshedSelection() async {

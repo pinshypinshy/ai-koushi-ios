@@ -1,4 +1,4 @@
-# AI講師 iOS
+# <img src="AIKoushi/AIKoushi/Assets.xcassets/AppIcon.appiconset/icon-1024.png" width="40" alt="" align="center"> AI講師 iOS
 
 [AI講師](https://github.com/pinshypinshy/ai-koushi) の iOS ネイティブクライアント。
 講義の受講・確認テスト・誤答の復習を、スマートフォンで短い空き時間に少しずつ進めるためのアプリ。

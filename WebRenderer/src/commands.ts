@@ -1,4 +1,4 @@
-// Swift の ConversationCommand と対になる型（ADR 0003）。
+// Swift の ConversationCommand と対になる。
 // 型の食い違いはコンパイラでは見つからないため、届いた値をここで検査し、合わなければ CommandError にする
 
 export type ConversationItem =

@@ -20,4 +20,13 @@ public enum AppColor {
     public static let usageNormal = Color.accentColor
     public static let usageWarning = Color.orange
     public static let usageLimit = Color.red
+
+    public static let link = Color(uiColor: .link)
+    public static let border = Color(uiColor: .separator)
+    public static let userMessageBackground = Color.accentColor
+    public static let userMessageText = Color.white
+    public static let codeBackground = Color(uiColor: .tertiarySystemFill)
+    public static let codeBlockBackground = Color(uiColor: .secondarySystemBackground)
+    public static let codeBlockText = Color.primary
+    public static let tableHeaderBackground = Color(uiColor: .secondarySystemBackground)
 }

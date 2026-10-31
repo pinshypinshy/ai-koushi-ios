@@ -1,9 +1,9 @@
-// 成果物はコミットする（CLAUDE.md「コマンド」）。同じソースから同じ成果物になるよう、
-// 名前にハッシュを付けず、古いファイルを消してから書き出す
+// 同じソースから同じ成果物になるよう、名前にハッシュを付けず、古いファイルを消してから書き出す
 import { build } from 'esbuild'
 import { copyFile, mkdir, rm } from 'node:fs/promises'
 
-const outdir = '../AIKoushiKit/Sources/ConversationWebView/Resources'
+// バンドルの直下に Resources という名前のフォルダがあると、codesign がバンドルの形式を認識できずに失敗するため、1段深くする
+const outdir = '../AIKoushiKit/Sources/ConversationWebView/Resources/WebRenderer'
 
 await rm(outdir, { recursive: true, force: true })
 await mkdir(outdir, { recursive: true })

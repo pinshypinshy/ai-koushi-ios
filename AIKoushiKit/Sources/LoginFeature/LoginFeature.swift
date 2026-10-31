@@ -16,6 +16,7 @@ public struct LoginFeature {
     public struct State: Equatable {
         var loginId: String
         var password: String
+        var isGuestFormOpen = false
         var isSubmitting = false
         var errorMessage: String?
 
@@ -30,6 +31,7 @@ public struct LoginFeature {
 
     public enum Action: BindableAction {
         case binding(BindingAction<State>)
+        case guestSignInButtonTapped
         case loginButtonTapped
         case loginSucceeded
         case loginFailed(any Error)
@@ -53,6 +55,10 @@ public struct LoginFeature {
         Reduce { state, action in
             switch action {
             case .binding:
+                return .none
+
+            case .guestSignInButtonTapped:
+                state.isGuestFormOpen = true
                 return .none
 
             case .loginButtonTapped:

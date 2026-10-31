@@ -125,4 +125,12 @@ struct LoginFeatureTests {
         await store.receive(\.loginSucceeded)
         await store.receive(\.delegate.loggedIn)
     }
+
+    @Test func guestSignInButtonOpensForm() async {
+        let store = TestStore(initialState: LoginFeature.State()) {
+            LoginFeature()
+        }
+
+        await store.send(.guestSignInButtonTapped) { $0.isGuestFormOpen = true }
+    }
 }

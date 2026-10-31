@@ -23,7 +23,7 @@ let package = Package(
         .target(name: "APIClient", dependencies: ["Models", tca]),
         .target(name: "APIClientLive", dependencies: ["APIClient", "AppConfig", "Models", tca]),
         .target(name: "SharedUI", dependencies: ["Models"]),
-        .target(name: "LoginFeature", dependencies: ["APIClient", "Models", "SharedUI", tca]),
+        .target(name: "LoginFeature", dependencies: ["APIClient", "Models", "SharedUI", tca], resources: [.process("Resources")]),
         .target(name: "SidebarFeature", dependencies: ["APIClient", "Models", "SharedUI", tca]),
         .target(name: "CourseFeature", dependencies: ["AppConfig", "Models", "SharedUI", tca]),
         .target(name: "AppFeature", dependencies: ["LoginFeature", "SidebarFeature", "CourseFeature", "APIClient", "Models", "SharedUI", tca]),

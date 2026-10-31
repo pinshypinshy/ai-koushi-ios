@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!-- 同梱したファイル以外は読み込まない。style の 'unsafe-inline' は、KaTeX が style 属性で組版するため -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'none'"
+    />
+    <link rel="stylesheet" href="conversation-style.css" />
+  </head>
+  <body>
+    <main id="conversation"></main>
+    <script src="conversation.js"></script>
+  </body>
+</html>

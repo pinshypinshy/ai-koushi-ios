@@ -20,6 +20,10 @@ build/
 .build/
 .swiftpm/
 
+# ---- npm（WebRenderer）----
+# package-lock.json はコミットする
+node_modules/
+
 # ---- 秘密情報・手元だけの設定 ----
 *.local.xcconfig
 Secrets.xcconfig

@@ -25,7 +25,6 @@ body {
   font-family: -apple-system, system-ui, 'Hiragino Sans', sans-serif;
   font-size: var(--font-size);
   -webkit-font-smoothing: antialiased;
-  /* 会話全体は横にスクロールさせない（§3.2） */
   overflow-x: hidden;
 }
 

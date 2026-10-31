@@ -1,4 +1,4 @@
-// JavaScript から Swift へ届けるもの（ADR 0003）。Swift の WebMessage と対になる
+// Swift の WebMessage と対になる
 
 export type ErrorKind = 'script' | 'command' | 'math'
 
@@ -18,7 +18,6 @@ export function post(message: WebMessage): void {
   if (handler) {
     handler.postMessage(message)
   } else {
-    // アプリの外（ブラウザでの確認）で開いたとき
     console.info(message)
   }
 }

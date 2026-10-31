@@ -46,7 +46,6 @@ export class ConversationRenderer {
 
     let forceScrollToEnd = false
     let streamingChanged = false
-    // 数式の幅を測り直す範囲。文字の大きさや全体が変わったときは全体を測る
     let measuresAll = false
     const added: HTMLElement[] = []
     for (const command of commands) {

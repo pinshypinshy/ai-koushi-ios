@@ -68,13 +68,19 @@ AIKoushiKit/                 … ローカルパッケージ
 │   ├── APIClient/           … API クライアントのインターフェース（Dependency）
 │   ├── APIClientLive/       … URLSession による実装。アプリ本体と自身のテストだけが import する
 │   ├── SharedUI/            … 複数の Feature で使う View 部品
+│   ├── ConversationWebView/ … Markdown と数式を WKWebView で表示する View（ADR 0003）
+│   │   └── Resources/       … WebRenderer/ をビルドした成果物。手で編集しない
 │   ├── <Name>Feature/       … 画面ごとの Feature（Reducer と View を同じモジュールに置く）
 │   └── AppFeature/          … ルート。起動・セッション切れ・画面の切り替え
 └── Tests/
+    ├── ConversationWebViewTests/ … 送る内容の計算と、シミュレータ上での描画のテスト
     └── <Name>FeatureTests/  … Feature ごとのテスト
+WebRenderer/                 … WebView の中で動く TypeScript のソースとビルドの設定
 ```
 
 - 依存の向き：`Models ← APIClient ← 各 Feature ← AppFeature ← アプリ本体 → APIClientLive`
+- `ConversationWebView` は `SharedUI` だけに依存し、`Models` と TCA には依存しない。使う Feature
+  （`CourseFeature`、段階3の確認テスト）が、API の型から表示する内容へ変換して渡す
 - Feature と Feature のテストは `APIClientLive` に依存させない（本物の API を呼べない構造にするため）
 - `APIClientLive` のテストは、`URLProtocol` で応答を差し替えて書く（本物の API は呼ばない）
 - Feature 同士は直接依存させない。組み合わせるのは `AppFeature`
@@ -95,9 +101,13 @@ AIKoushiKit/                 … ローカルパッケージ
 | Default Actor Isolation | nonisolated                                                    |
 | Approachable Concurrency | 使わない（アプリ本体を OFF にし、パッケージの標準に揃える。実行時の動きが変わる設定のため） |
 | MemberImportVisibility  | アプリ本体・パッケージとも使う（パッケージは `Package.swift` の末尾で全ターゲットに設定） |
+| Markdown と数式の表示   | WKWebView ＋ Web版と同じ remark／rehype の処理と KaTeX（ADR 0003）            |
+| WebRenderer             | TypeScript（strict）。esbuild で1つにまとめる。Node.js は `WebRenderer/.node-version` で固定（22.20.0。Web版と同じ） |
 
 - TCA のバージョンは固定する。上げるときはユーザーに確認する
 - 外部ライブラリは TCA 以外に追加しない。必要だと思ったら提案する
+  - 例外は `WebRenderer/` の npm パッケージ（ADR 0003）。`package.json` でバージョンを完全に固定し、
+    `package-lock.json` もコミットする。パッケージの追加・バージョンの変更はユーザーに確認する
 
 ---
 
@@ -109,8 +119,12 @@ AIKoushiKit/                 … ローカルパッケージ
 | ------ | -------- |
 | ビルド（アプリ本体） | `xcodebuild build -project AIKoushi/AIKoushi.xcodeproj -scheme AIKoushi -destination 'platform=iOS Simulator,name=iPhone 17'` |
 | テスト（パッケージ） | `cd AIKoushiKit && xcodebuild test -scheme AIKoushiKit-Package -destination 'platform=iOS Simulator,name=iPhone 17'` |
+| WebRenderer のビルド（型の検査を含む） | `cd WebRenderer && npm ci && npm run build` |
+| 成果物がソースと一致するかの確認 | WebRenderer をビルドしたあとに `git diff --exit-code -- AIKoushiKit/Sources/ConversationWebView/Resources` |
 
 - テストはすべてパッケージ側にある。アプリ本体にテストのターゲットは無い
+- Xcode のビルドに Node.js は要らない（成果物をコミットしているため）。`WebRenderer/` を変えたら
+  ビルドし直し、ソースと成果物を同じコミットに入れる
 
 ---
 

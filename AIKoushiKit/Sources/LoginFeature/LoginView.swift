@@ -72,7 +72,7 @@ public struct LoginView: View {
         }
     }
 
-    // Google でのサインインは段階5で作る。それまでは押せない
+    // Google でのサインインは段階4で作る。それまでは押せない
     private var googleButton: some View {
         Button {} label: {
             HStack(spacing: 12) {

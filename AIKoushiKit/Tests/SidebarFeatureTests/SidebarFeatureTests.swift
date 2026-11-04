@@ -136,6 +136,7 @@ extension BootstrapResponse {
         BootstrapResponse(
             user: ApiUser(id: "u1", email: "guest-01@example.com", displayName: displayName),
             courses: courses,
+            selected: nil,
             usage: UsageSummary(costUsd: 0.1, costLimitUsd: 1, courses: coursesUsed, courseLimit: 10, periodStart: 0)
         )
     }

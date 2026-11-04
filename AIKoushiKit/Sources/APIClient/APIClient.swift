@@ -15,6 +15,21 @@ public struct APIClient: Sendable {
     public var guestLogin: @Sendable (_ loginId: String, _ password: String) async throws -> Void
     /// 通信の成否にかかわらず、手元の Cookie を消す（§4.5）
     public var logout: @Sendable () async throws -> Void
+    public var course: @Sendable (_ id: String) async throws -> CourseDetail
+    /// 403 などのエラーも、列を読む途中で投げる。`done` が届かずに列が終わることもあり、その判断は呼ぶ側が行う（§4.9）
+    public var streamLecture: @Sendable (_ courseId: String) -> AsyncThrowingStream<LectureStreamLine, any Error> = { _ in
+        AsyncThrowingStream { $0.finish() }
+    }
+    /// エラーの扱いは streamLecture と同じ
+    public var sendMessage: @Sendable (_ courseId: String, _ text: String) -> AsyncThrowingStream<LectureStreamLine, any Error> = { _, _ in
+        AsyncThrowingStream { $0.finish() }
+    }
+    /// エラーの扱いは streamLecture と同じ
+    public var regenerate: @Sendable (_ courseId: String) -> AsyncThrowingStream<LectureStreamLine, any Error> = { _ in
+        AsyncThrowingStream { $0.finish() }
+    }
+    public var completeStep: @Sendable (_ courseId: String, _ stepId: String) async throws -> CourseDetail
+    public var usage: @Sendable () async throws -> UsageSummary
 }
 
 extension APIClient: TestDependencyKey {

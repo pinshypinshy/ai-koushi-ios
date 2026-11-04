@@ -11,8 +11,9 @@ import SwiftUI
 import Testing
 import WebKit
 
+// WebView を同時に立ち上げると、どれも読み込みが待ち時間に間に合わなくなるため1つずつ実行する
 @MainActor
-@Suite(.timeLimit(.minutes(1)))
+@Suite(.serialized, .timeLimit(.minutes(1)))
 struct ConversationRenderingTests {
     @Test func rendersEveryFormulaInMaterial() async throws {
         let harness = RenderingHarness()
@@ -129,7 +130,8 @@ final class RenderingHarness {
         return try #require(result as? String)
     }
 
-    func waitUntil(_ condition: String, timeout: Duration = .seconds(10)) async throws {
+    // 他のビルドなどで重いときは、WebView の読み込みに10秒以上かかることがあるため長めに待つ
+    func waitUntil(_ condition: String, timeout: Duration = .seconds(30)) async throws {
         let deadline = ContinuousClock.now + timeout
         while ContinuousClock.now < deadline {
             if try await evaluate("Boolean(\(condition))") == "true" { return }
@@ -139,7 +141,7 @@ final class RenderingHarness {
         throw CancellationError()
     }
 
-    func waitUntil(timeout: Duration = .seconds(10), _ condition: () -> Bool) async throws {
+    func waitUntil(timeout: Duration = .seconds(30), _ condition: () -> Bool) async throws {
         let deadline = ContinuousClock.now + timeout
         while ContinuousClock.now < deadline {
             if condition() { return }

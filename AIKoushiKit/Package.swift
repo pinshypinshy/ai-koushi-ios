@@ -26,14 +26,14 @@ let package = Package(
         .target(name: "ConversationWebView", dependencies: ["SharedUI"], resources: [.copy("Resources/WebRenderer")]),
         .target(name: "LoginFeature", dependencies: ["APIClient", "Models", "SharedUI", tca], resources: [.process("Resources")]),
         .target(name: "SidebarFeature", dependencies: ["APIClient", "Models", "SharedUI", tca]),
-        .target(name: "CourseFeature", dependencies: ["AppConfig", "Models", "SharedUI", tca]),
+        .target(name: "CourseFeature", dependencies: ["APIClient", "AppConfig", "ConversationWebView", "Models", "SharedUI", tca]),
         .target(name: "AppFeature", dependencies: ["LoginFeature", "SidebarFeature", "CourseFeature", "APIClient", "Models", "SharedUI", tca]),
 
         .testTarget(name: "ConversationWebViewTests", dependencies: ["ConversationWebView"], resources: [.process("Resources")]),
         .testTarget(name: "APIClientLiveTests", dependencies: ["APIClientLive", "APIClient", "AppConfig", "Models"]),
         .testTarget(name: "LoginFeatureTests", dependencies: ["LoginFeature", "APIClient", "Models", tca]),
         .testTarget(name: "SidebarFeatureTests", dependencies: ["SidebarFeature", "APIClient", "Models", tca]),
-        .testTarget(name: "CourseFeatureTests", dependencies: ["CourseFeature", "Models", tca]),
+        .testTarget(name: "CourseFeatureTests", dependencies: ["CourseFeature", "APIClient", "ConversationWebView", "Models", tca]),
         .testTarget(name: "AppFeatureTests", dependencies: ["AppFeature", "LoginFeature", "SidebarFeature", "CourseFeature", "APIClient", "Models", tca]),
     ],
     swiftLanguageModes: [.v6]

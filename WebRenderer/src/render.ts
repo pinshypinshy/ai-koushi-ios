@@ -138,6 +138,12 @@ function itemNode(item: ConversationItem): HTMLElement {
       node.dataset['id'] = item.id
       return node
     }
+    case 'notice': {
+      const node = element('div', 'notice')
+      node.textContent = item.text
+      node.dataset['id'] = item.id
+      return node
+    }
     default:
       return assertNever(item)
   }

@@ -23,6 +23,7 @@ public enum ConversationItem: Equatable, Sendable {
     case divider(id: String, label: String)
     case assistant(id: String, markdown: String)
     case user(id: String, text: String)
+    case notice(id: String, text: String)
 }
 
 // JSON の形は WebRenderer/src/commands.ts の ConversationItem と対になる
@@ -44,6 +45,10 @@ extension ConversationItem: Encodable {
             try container.encode(markdown, forKey: .markdown)
         case let .user(id, text):
             try container.encode("user", forKey: .type)
+            try container.encode(id, forKey: .id)
+            try container.encode(text, forKey: .text)
+        case let .notice(id, text):
+            try container.encode("notice", forKey: .type)
             try container.encode(id, forKey: .id)
             try container.encode(text, forKey: .text)
         }

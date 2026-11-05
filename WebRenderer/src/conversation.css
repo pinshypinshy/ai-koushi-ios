@@ -71,6 +71,13 @@ body {
   color: var(--color-secondaryText);
 }
 
+/* 直前の発言についての注記だと分かるよう、#conversation の gap を詰めて発言に寄せる */
+.notice {
+  margin-top: -0.75em;
+  color: var(--color-error);
+  font-size: 0.8em;
+}
+
 /* 以下は Web版 app/src/index.css の .md と同じ規則。
    Web版の rem は本文 14px に対する比なので、Dynamic Type に追従するよう em に置き換えた */
 .md > *:first-child {

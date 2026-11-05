@@ -68,9 +68,21 @@ struct ConversationCommandTests {
         ])
     }
 
+    /// 回答の無い質問の注記が消えると同時に、次の発言を送ったとき（§3.2）
+    @Test func sentQuestionScrollsToEndEvenWhenItemsAreReset() {
+        let notice = ConversationItem.notice(id: "n1", text: "応答を取得できませんでした")
+        let next = ConversationItem.user(id: "u2", text: "次の質問")
+        let old = ConversationContent(id: "c1", items: [divider, question, notice], streaming: nil)
+        let new = ConversationContent(id: "c1", items: [divider, question, next], streaming: "")
+        #expect(ConversationCommand.commands(from: old, to: new) == [
+            .reset(items: [divider, question, next], streaming: "", scrollToEnd: true),
+        ])
+    }
+
     @Test func encodesToTheShapeJavaScriptExpects() throws {
+        let notice = ConversationItem.notice(id: "n1", text: "注記")
         let commands: [ConversationCommand] = [
-            .reset(items: [divider, answer, question], streaming: nil, scrollToEnd: true),
+            .reset(items: [divider, answer, question, notice], streaming: nil, scrollToEnd: true),
             .append(items: [], scrollToEnd: false),
             .setStreaming("途中"),
         ]
@@ -80,7 +92,8 @@ struct ConversationCommandTests {
         #expect(json == """
         [{"items":[{"id":"d1","label":"ステップ 1・はじめに","type":"divider"},\
         {"id":"a1","markdown":"本文 $x$","type":"assistant"},\
-        {"id":"u1","text":"質問","type":"user"}],"scrollToEnd":true,"streaming":null,"type":"reset"},\
+        {"id":"u1","text":"質問","type":"user"},\
+        {"id":"n1","text":"注記","type":"notice"}],"scrollToEnd":true,"streaming":null,"type":"reset"},\
         {"items":[],"scrollToEnd":false,"type":"append"},\
         {"text":"途中","type":"setStreaming"}]
         """)

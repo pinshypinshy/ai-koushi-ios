@@ -88,6 +88,17 @@ struct ConversationRenderingTests {
         #expect(try await harness.evaluate("[...document.getElementById('conversation').children].map(e => e.dataset.id)") == #"["d1","a1"]"#)
     }
 
+    /// 注記は Markdown として解釈せず、文字のまま表示する
+    @Test func showsNoticeAsPlainText() async throws {
+        let harness = RenderingHarness()
+        harness.show(ConversationContent(id: "c1", items: [.notice(id: "n1", text: "**途切れました**")], streaming: nil))
+        try await harness.waitUntil("document.querySelector('[data-id=\"n1\"]') !== null")
+
+        #expect(try await harness.evaluate("document.querySelector('[data-id=\"n1\"]').className") == #""notice""#)
+        #expect(try await harness.evaluate("document.querySelector('[data-id=\"n1\"]').textContent") == #""**途切れました**""#)
+        #expect(harness.errors.isEmpty)
+    }
+
     @Test func passesOnlyBrowserLinksToSwift() async throws {
         let harness = RenderingHarness()
         var opened: [URL] = []

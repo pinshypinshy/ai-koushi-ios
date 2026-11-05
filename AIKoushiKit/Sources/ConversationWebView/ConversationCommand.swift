@@ -16,21 +16,26 @@ enum ConversationCommand: Equatable {
         guard let old, old.id == new.id else {
             return [.reset(items: new.items, streaming: new.streaming, scrollToEnd: true)]
         }
+        // 利用者が発言を送ったときは末尾を表示する（§3.2）。
+        // ID で比べると、読み直しで手元の ID がサーバーの ID に変わっただけのときも移動してしまう
+        let sentMessage = userMessageCount(in: new.items) > userMessageCount(in: old.items)
         guard new.items.starts(with: old.items) else {
-            return [.reset(items: new.items, streaming: new.streaming, scrollToEnd: false)]
+            return [.reset(items: new.items, streaming: new.streaming, scrollToEnd: sentMessage)]
         }
 
         var commands: [Self] = []
         let added = Array(new.items.dropFirst(old.items.count))
         if !added.isEmpty {
-            // 利用者が発言を送ったときは末尾を表示する（§3.2）
-            let containsUser = added.contains { if case .user = $0 { true } else { false } }
-            commands.append(.append(items: added, scrollToEnd: containsUser))
+            commands.append(.append(items: added, scrollToEnd: sentMessage))
         }
         if new.streaming != old.streaming {
             commands.append(.setStreaming(new.streaming))
         }
         return commands
+    }
+
+    private static func userMessageCount(in items: [ConversationItem]) -> Int {
+        items.count { if case .user = $0 { true } else { false } }
     }
 }
 

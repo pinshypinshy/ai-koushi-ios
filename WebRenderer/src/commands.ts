@@ -5,6 +5,7 @@ export type ConversationItem =
   | { readonly type: 'divider'; readonly id: string; readonly label: string }
   | { readonly type: 'assistant'; readonly id: string; readonly markdown: string }
   | { readonly type: 'user'; readonly id: string; readonly text: string }
+  | { readonly type: 'notice'; readonly id: string; readonly text: string }
 
 export const colorNames = [
   'text',
@@ -98,6 +99,7 @@ function parseItem(value: unknown): ConversationItem {
     case 'assistant':
       return { type, id, markdown: string(object, 'markdown') }
     case 'user':
+    case 'notice':
       return { type, id, text: string(object, 'text') }
     default:
       throw new CommandError(`知らない発言の種類：${type}`)

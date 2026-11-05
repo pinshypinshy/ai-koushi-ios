@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import Testing
+import UIKit
 import WebKit
 
 // WebView を同時に立ち上げると、どれも読み込みが待ち時間に間に合わなくなるため1つずつ実行する
@@ -106,11 +107,15 @@ struct ConversationRenderingTests {
 final class RenderingHarness {
     let coordinator = ConversationCoordinator()
     let webView: WKWebView
+    // ウィンドウに無い WebView は既定で処理が止められるため（WKPreferences.inactiveSchedulingPolicy）、実際のアプリと同じくウィンドウに入れる
+    private let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
     private(set) var errors: [(kind: WebMessage.ErrorKind, message: String)] = []
 
     init() {
         webView = coordinator.makeWebView()
-        webView.frame = CGRect(x: 0, y: 0, width: 375, height: 812)
+        webView.frame = window.bounds
+        window.addSubview(webView)
+        window.isHidden = false
         coordinator.onError = { [weak self] kind, message in
             self?.errors.append((kind, message))
         }

@@ -13,12 +13,12 @@ import Testing
 
 @MainActor
 struct SidebarFeatureTests {
-    @Test func firstCourseIsSelectedInitially() {
+    @Test func init_最初の講義を選択する() {
         #expect(SidebarFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")])).selectedCourseID == "c1")
         #expect(SidebarFeature.State(bootstrap: .mock(courses: [])).selectedCourseID == nil)
     }
 
-    @Test func tappingRowSelectsCourse() async {
+    @Test func courseRowTapped_講義を選択する() async {
         let store = TestStore(initialState: SidebarFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))) {
             SidebarFeature()
         }
@@ -27,7 +27,7 @@ struct SidebarFeatureTests {
         await store.receive(\.delegate.courseSelected)
     }
 
-    @Test func refreshKeepsSelectionWhenCourseRemains() async {
+    @Test func refreshSucceeded_選択中の講義が残れば選択を保つ() async {
         var initial = SidebarFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))
         initial.selectedCourseID = "c2"
         let response = BootstrapResponse.mock(
@@ -49,7 +49,7 @@ struct SidebarFeatureTests {
         }
     }
 
-    @Test func refreshSelectsFirstWhenSelectedCourseIsGone() async {
+    @Test func refreshSucceeded_選択中の講義が消えたら先頭を選択する() async {
         var initial = SidebarFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))
         initial.selectedCourseID = "c2"
         let response = BootstrapResponse.mock(courses: [.mock("c1"), .mock("c3")])
@@ -66,7 +66,7 @@ struct SidebarFeatureTests {
         }
     }
 
-    @Test func refreshClearsSelectionWhenNoCoursesRemain() async {
+    @Test func refreshSucceeded_講義が無くなれば選択を外す() async {
         let store = TestStore(initialState: SidebarFeature.State(bootstrap: .mock(courses: [.mock("c1")]))) {
             SidebarFeature()
         } withDependencies: {
@@ -85,7 +85,7 @@ struct SidebarFeatureTests {
         (APIClientError.http(status: 500, body: nil), SidebarFeature.otherErrorMessage),
         (APIClientError.decoding, SidebarFeature.otherErrorMessage),
     ])
-    func failedRefreshKeepsListAndShowsMessage(error: APIClientError, message: String) async {
+    func refreshFailed_一覧を残して文言を表示する(error: APIClientError, message: String) async {
         let store = TestStore(initialState: SidebarFeature.State(bootstrap: .mock(courses: [.mock("c1")]))) {
             SidebarFeature()
         } withDependencies: {
@@ -96,7 +96,7 @@ struct SidebarFeatureTests {
         await store.receive(\.refreshFailed) { $0.refreshErrorMessage = message }
     }
 
-    @Test func unauthorizedRefreshReportsSessionExpired() async {
+    @Test func refreshFailed_401ならセッション切れを親に知らせる() async {
         let store = TestStore(initialState: SidebarFeature.State(bootstrap: .mock(courses: [.mock("c1")]))) {
             SidebarFeature()
         } withDependencies: {
@@ -108,7 +108,7 @@ struct SidebarFeatureTests {
         await store.receive(\.delegate.sessionExpired)
     }
 
-    @Test func refreshClearsPreviousMessage() async {
+    @Test func refreshPulled_前の文言を消す() async {
         var initial = SidebarFeature.State(bootstrap: .mock(courses: [.mock("c1")]))
         initial.refreshErrorMessage = SidebarFeature.networkErrorMessage
         let store = TestStore(initialState: initial) {
@@ -121,7 +121,7 @@ struct SidebarFeatureTests {
         await store.receive(\.refreshSucceeded)
     }
 
-    @Test func logoutIsRequestedFromUserMenu() async {
+    @Test func logoutButtonTapped_親にログアウトを頼む() async {
         let store = TestStore(initialState: SidebarFeature.State(bootstrap: .mock(courses: []))) {
             SidebarFeature()
         }

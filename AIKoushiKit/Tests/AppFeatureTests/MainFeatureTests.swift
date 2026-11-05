@@ -16,12 +16,12 @@ import Testing
 // Sidebar の中の状態の変化は SidebarFeatureTests で確かめているため、ここではメイン画面側だけを確かめる
 @MainActor
 struct MainFeatureTests {
-    @Test func courseShowsFirstCourseInitially() {
+    @Test func init_最初の講義を表示する() {
         #expect(MainFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")])).course.course?.id == "c1")
         #expect(MainFeature.State(bootstrap: .mock(courses: [])).course.course == nil)
     }
 
-    @Test func menuButtonOpensSidebar() async {
+    @Test func course_メニューボタンでサイドバーを開く() async {
         let store = TestStore(initialState: MainFeature.State(bootstrap: .mock(courses: [.mock("c1")]))) {
             MainFeature()
         }
@@ -30,7 +30,7 @@ struct MainFeatureTests {
         await store.receive(\.course.delegate.sidebarRequested) { $0.isSidebarOpen = true }
     }
 
-    @Test func tappingRowShowsCourseAndClosesSidebar() async {
+    @Test func sidebar_行を押すと講義を表示してサイドバーを閉じる() async {
         var initial = MainFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))
         initial.isSidebarOpen = true
         let store = TestStore(initialState: initial) {
@@ -44,7 +44,7 @@ struct MainFeatureTests {
         await store.receive(\.sidebar.delegate.courseSelected) { $0.isSidebarOpen = false }
     }
 
-    @Test func tappingPeekingMainClosesSidebarWithoutChangingSelection() async {
+    @Test func peekingMainTapped_選択を変えずにサイドバーを閉じる() async {
         var initial = MainFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))
         initial.isSidebarOpen = true
         let store = TestStore(initialState: initial) {
@@ -54,16 +54,25 @@ struct MainFeatureTests {
         await store.send(.peekingMainTapped) { $0.isSidebarOpen = false }
     }
 
-    @Test func swipesOpenAndCloseSidebar() async {
+    @Test func sidebarSwipedOpen_サイドバーを開く() async {
         let store = TestStore(initialState: MainFeature.State(bootstrap: .mock(courses: [.mock("c1")]))) {
             MainFeature()
         }
 
         await store.send(.sidebarSwipedOpen) { $0.isSidebarOpen = true }
+    }
+
+    @Test func sidebarSwipedClosed_サイドバーを閉じる() async {
+        var initial = MainFeature.State(bootstrap: .mock(courses: [.mock("c1")]))
+        initial.isSidebarOpen = true
+        let store = TestStore(initialState: initial) {
+            MainFeature()
+        }
+
         await store.send(.sidebarSwipedClosed) { $0.isSidebarOpen = false }
     }
 
-    @Test func courseFollowsRefreshedSelection() async {
+    @Test func sidebar_取り直しの選択に講義が追従する() async {
         let updated = CourseSummary.mock("c1", completedSteps: 3)
         let response = BootstrapResponse.mock(courses: [updated])
         let store = TestStore(initialState: MainFeature.State(bootstrap: .mock(courses: [.mock("c1")]))) {
@@ -79,7 +88,7 @@ struct MainFeatureTests {
         }
     }
 
-    @Test func courseBecomesEmptyWhenNoCoursesRemain() async {
+    @Test func sidebar_講義が無くなると空状態にする() async {
         let store = TestStore(initialState: MainFeature.State(bootstrap: .mock(courses: [.mock("c1")]))) {
             MainFeature()
         } withDependencies: {

@@ -16,9 +16,9 @@ import WebKit
 @MainActor
 @Suite(.serialized, .timeLimit(.minutes(1)))
 struct ConversationRenderingTests {
-    @Test func rendersEveryFormulaInMaterial() async throws {
+    @Test func 教材の数式をすべて描画する() async throws {
         let harness = RenderingHarness()
-        let material = try #require(Bundle.module.url(forResource: "material-visual-computing", withExtension: "md"))
+        let material = try #require(Bundle.module.url(forResource: "formulas", withExtension: "md"))
         let markdown = try String(contentsOf: material, encoding: .utf8)
 
         harness.show(ConversationContent(id: "c1", items: [.assistant(id: "material", markdown: markdown)], streaming: nil))
@@ -27,12 +27,23 @@ struct ConversationRenderingTests {
         // 教材に含まれる数式の数
         #expect(try await harness.evaluate("document.querySelectorAll('[data-id=\"material\"] .katex').length") == "263")
         #expect(harness.errors.isEmpty)
-        // 幅 375pt で画面幅を超える数式の数
-        #expect(try await harness.evaluate("document.querySelectorAll('.math-scroll').length") == "3")
         #expect(try await harness.evaluate("document.scrollingElement.scrollWidth <= innerWidth") == "true")
     }
 
-    @Test func loadsBundledStylesAndFonts() async throws {
+    /// 改行できない幅の文中の数式だけを、横にスクロールする枠に入れる（§3.2）
+    @Test func 幅を超える文中の数式だけを枠に入れる() async throws {
+        let harness = RenderingHarness()
+        let entries = (1...30).map { "a_{\($0)}" }.joined(separator: " & ")
+        let markdown = "短い数式 $x^2$\n\n$\\begin{pmatrix} \(entries) \\end{pmatrix}$"
+        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: markdown)], streaming: nil))
+        try await harness.waitUntil("document.querySelector('[data-id=\"a1\"] .katex') !== null")
+
+        #expect(try await harness.evaluate("document.querySelectorAll('.katex').length") == "2")
+        #expect(try await harness.evaluate("document.querySelectorAll('.math-scroll').length") == "1")
+        #expect(try await harness.evaluate("document.scrollingElement.scrollWidth <= innerWidth") == "true")
+    }
+
+    @Test func 同梱のスタイルとフォントを読み込む() async throws {
         let harness = RenderingHarness()
         harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: "$x^2$")], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"a1\"] .katex') !== null")
@@ -41,13 +52,13 @@ struct ConversationRenderingTests {
         try await harness.waitUntil("[...document.fonts].some(f => f.family.includes('KaTeX_Main') && f.status === 'loaded')")
     }
 
-    @Test func reportsFormulaKaTeXCannotParse() async throws {
+    @Test func KaTeXが読めない数式を報告する() async throws {
         let harness = RenderingHarness()
         harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: "$\\undefinedcommand{x}$")], streaming: nil))
         try await harness.waitUntil { harness.errors.contains { $0.kind == .math } }
     }
 
-    @Test func reportsCommandOfWrongShape() async throws {
+    @Test func 形の違う命令を報告する() async throws {
         let harness = RenderingHarness()
         harness.show(ConversationContent(id: "c1", items: [.divider(id: "d1", label: "ステップ 1")], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"d1\"]') !== null")
@@ -60,7 +71,7 @@ struct ConversationRenderingTests {
         try await harness.waitUntil { harness.errors.contains { $0.kind == .command } }
     }
 
-    @Test func showsRawHTMLAsTextAndImagesAsAltText() async throws {
+    @Test func 生のHTMLは文字のまま表示し画像は説明を表示する() async throws {
         let harness = RenderingHarness()
         let markdown = "<b>太字</b> <script>window.injected = true</script>\n\n![猫の写真](https://example.com/cat.png)"
         harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: markdown)], streaming: nil))
@@ -73,7 +84,7 @@ struct ConversationRenderingTests {
         #expect(text.contains("猫の写真"))
     }
 
-    @Test func showsStreamingAnswerUntilItIsFinished() async throws {
+    @Test func 受信中の発言を確定するまで表示する() async throws {
         let harness = RenderingHarness()
         let divider = ConversationItem.divider(id: "d1", label: "ステップ 1・はじめに")
 
@@ -88,8 +99,7 @@ struct ConversationRenderingTests {
         #expect(try await harness.evaluate("[...document.getElementById('conversation').children].map(e => e.dataset.id)") == #"["d1","a1"]"#)
     }
 
-    /// 注記は Markdown として解釈せず、文字のまま表示する
-    @Test func showsNoticeAsPlainText() async throws {
+    @Test func 注記をMarkdownとして解釈せず文字のまま表示する() async throws {
         let harness = RenderingHarness()
         harness.show(ConversationContent(id: "c1", items: [.notice(id: "n1", text: "**途切れました**")], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"n1\"]') !== null")
@@ -99,7 +109,7 @@ struct ConversationRenderingTests {
         #expect(harness.errors.isEmpty)
     }
 
-    @Test func passesOnlyBrowserLinksToSwift() async throws {
+    @Test func httpとhttpsのリンクだけをSwiftへ渡す() async throws {
         let harness = RenderingHarness()
         var opened: [URL] = []
         harness.coordinator.onLinkTap = { opened.append($0) }

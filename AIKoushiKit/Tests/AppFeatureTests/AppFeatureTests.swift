@@ -16,7 +16,7 @@ import Testing
 @MainActor
 struct AppFeatureTests {
     @Test(arguments: [[CourseSummary.mock("c1")], []])
-    func launchShowsMainScreen(courses: [CourseSummary]) async {
+    func bootstrapSucceeded_メイン画面を表示する(courses: [CourseSummary]) async {
         let response = BootstrapResponse.mock(courses: courses)
         let store = TestStore(initialState: AppFeature.State.launching) {
             AppFeature()
@@ -28,7 +28,7 @@ struct AppFeatureTests {
         await store.receive(\.bootstrapSucceeded) { $0 = .main(MainFeature.State(bootstrap: response)) }
     }
 
-    @Test func launchWithoutSessionShowsLoginWithoutMessage() async {
+    @Test func bootstrapFailed_セッションが無ければ文言なしでログイン画面を表示する() async {
         let store = TestStore(initialState: AppFeature.State.launching) {
             AppFeature()
         } withDependencies: {
@@ -44,7 +44,7 @@ struct AppFeatureTests {
         (APIClientError.http(status: 500, body: nil), .other),
         (APIClientError.decoding, .other),
     ])
-    func failedLaunchShowsError(error: APIClientError, expected: AppFeature.LaunchError) async {
+    func bootstrapFailed_結果ごとの起動エラーを表示する(error: APIClientError, expected: AppFeature.LaunchError) async {
         let store = TestStore(initialState: AppFeature.State.launching) {
             AppFeature()
         } withDependencies: {
@@ -55,7 +55,7 @@ struct AppFeatureTests {
         await store.receive(\.bootstrapFailed) { $0 = .launchFailed(expected) }
     }
 
-    @Test func retryAfterFailedLaunchShowsMainScreen() async {
+    @Test func retryButtonTapped_起動し直してメイン画面を表示する() async {
         let response = BootstrapResponse.mock(courses: [.mock("c1")])
         let store = TestStore(initialState: AppFeature.State.launchFailed(.network)) {
             AppFeature()
@@ -67,7 +67,7 @@ struct AppFeatureTests {
         await store.receive(\.bootstrapSucceeded) { $0 = .main(MainFeature.State(bootstrap: response)) }
     }
 
-    @Test func loginShowsMainScreen() async {
+    @Test func login_ログインしたらメイン画面を表示する() async {
         let response = BootstrapResponse.mock(courses: [.mock("c1")])
         let store = TestStore(initialState: AppFeature.State.login(LoginFeature.State(loginId: "guest-01", password: "pass"))) {
             AppFeature()
@@ -83,7 +83,7 @@ struct AppFeatureTests {
         await store.receive(\.bootstrapSucceeded) { $0 = .main(MainFeature.State(bootstrap: response)) }
     }
 
-    @Test func unauthorizedBootstrapAfterLoginShowsLoginAgain() async {
+    @Test func bootstrapFailed_ログイン直後の401ならログイン画面に戻す() async {
         let store = TestStore(initialState: AppFeature.State.login(LoginFeature.State(loginId: "guest-01", password: "pass"))) {
             AppFeature()
         } withDependencies: {
@@ -96,7 +96,7 @@ struct AppFeatureTests {
         await store.receive(\.bootstrapFailed) { $0 = .login(LoginFeature.State()) }
     }
 
-    @Test func unauthorizedRefreshShowsLoginWithMessage() async {
+    @Test func main_セッション切れなら文言付きでログイン画面を表示する() async {
         let store = TestStore(initialState: AppFeature.State.main(MainFeature.State(bootstrap: .mock(courses: [.mock("c1")])))) {
             AppFeature()
         } withDependencies: {
@@ -112,7 +112,7 @@ struct AppFeatureTests {
     }
 
     @Test(arguments: [true, false])
-    func logoutShowsLoginEvenWhenRequestFails(succeeds: Bool) async {
+    func logoutFinished_通信の成否によらずログイン画面を表示する(succeeds: Bool) async {
         let logoutCount = LockIsolated(0)
         let store = TestStore(initialState: AppFeature.State.main(MainFeature.State(bootstrap: .mock(courses: [.mock("c1")])))) {
             AppFeature()
@@ -130,7 +130,7 @@ struct AppFeatureTests {
         #expect(logoutCount.value == 1)
     }
 
-    @Test func refreshInFlightIsDiscardedAfterLogout() async {
+    @Test func main_ログアウトしたら取り直しの結果を捨てる() async {
         // 取り直しの応答を、ログアウトの後まで返さないため
         let (response, finishResponse) = AsyncStream.makeStream(of: Void.self)
         let store = TestStore(initialState: AppFeature.State.main(MainFeature.State(bootstrap: .mock(courses: [.mock("c1")])))) {

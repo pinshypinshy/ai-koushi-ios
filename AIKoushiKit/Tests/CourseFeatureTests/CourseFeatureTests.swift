@@ -12,7 +12,7 @@ import Testing
 
 @MainActor
 struct CourseFeatureTests {
-    @Test func menuButtonRequestsSidebar() async {
+    @Test func menuButtonTapped_親にサイドバーを開くよう頼む() async {
         let store = TestStore(initialState: CourseFeature.State(course: nil)) {
             CourseFeature()
         }
@@ -21,7 +21,7 @@ struct CourseFeatureTests {
         await store.receive(\.delegate.sidebarRequested)
     }
 
-    @Test func openWebButtonOpensProductionURL() async {
+    @Test func openWebButtonTapped_本番のURLを開く() async {
         let openedURL = LockIsolated<URL?>(nil)
         let store = TestStore(initialState: CourseFeature.State(course: nil)) {
             CourseFeature()

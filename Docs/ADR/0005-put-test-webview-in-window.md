@@ -6,7 +6,7 @@
 
 ## コンテキスト
 
-`ConversationRenderingTests` の `rendersEveryFormulaInMaterial()` が、数式を263個含む教材を描くときに待ち時間を超えて失敗することがあった。
+`ConversationRenderingTests` の `教材の数式をすべて描画する()` が、数式を263個含む教材を描くときに待ち時間を超えて失敗することがあった。
 テストの `RenderingHarness` は、WebView を作るだけでウィンドウに入れていなかった。
 
 Apple の [`WKPreferences.inactiveSchedulingPolicy`](https://developer.apple.com/documentation/webkit/wkpreferences/inactiveschedulingpolicy-swift.property)（iOS 17 以降）は、
@@ -44,3 +44,7 @@ Apple の [`WKPreferences.inactiveSchedulingPolicy`](https://developer.apple.com
 - ウィンドウに入れた後、Simulator の起動直後や負荷が高い状態を含めて、描画テストのスイートは9回続けて通った。待ち時間30秒・1つずつ実行の設定で測った
 - ウィンドウに入れても、待ち時間10秒・並列実行の設定では、Simulator の起動直後に5回中1回、スイートの全テストが待ち時間を超えて失敗した。待ち時間と実行順の設定はこの決定では変えない
 - ウィンドウなしで処理が完全には止まらず遅く進んだ理由と、公式の説明と測定で見えたプロセスの優先度の対応は確かめていない。実機でも測っていない
+
+## 訂正
+
+- 2026-11-06：テスト名を今の名前に直した（旧名は `rendersEveryFormulaInMaterial()`）。テストの命名の規則を変えたため。

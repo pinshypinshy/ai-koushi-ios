@@ -13,7 +13,7 @@ import Testing
 
 @MainActor
 struct LoginFeatureTests {
-    @Test func loginSucceeds() async {
+    @Test func loginSucceeded_親にログインを知らせる() async {
         let store = TestStore(initialState: LoginFeature.State(loginId: "guest-01", password: "pass")) {
             LoginFeature()
         } withDependencies: {
@@ -26,7 +26,7 @@ struct LoginFeatureTests {
     }
 
     @Test(arguments: [400, 401, 429])
-    func serverMessageIsShownAndPasswordIsCleared(status: Int) async {
+    func loginFailed_サーバーの文言を表示してパスワードを消す(status: Int) async {
         let store = TestStore(initialState: LoginFeature.State(loginId: "guest-01", password: "pass")) {
             LoginFeature()
         } withDependencies: {
@@ -43,7 +43,7 @@ struct LoginFeatureTests {
         }
     }
 
-    @Test func networkErrorShowsFixedMessage() async {
+    @Test func loginFailed_通信エラーは固定の文言を表示する() async {
         let store = TestStore(initialState: LoginFeature.State(loginId: "guest-01", password: "pass")) {
             LoginFeature()
         } withDependencies: {
@@ -63,7 +63,7 @@ struct LoginFeatureTests {
         APIClientError.http(status: 401, body: nil),
         APIClientError.decoding,
     ])
-    func otherErrorsShowFixedMessage(error: APIClientError) async {
+    func loginFailed_その他のエラーは固定の文言を表示する(error: APIClientError) async {
         let store = TestStore(initialState: LoginFeature.State(loginId: "guest-01", password: "pass")) {
             LoginFeature()
         } withDependencies: {
@@ -78,7 +78,7 @@ struct LoginFeatureTests {
         }
     }
 
-    @Test func secondTapWhileSubmittingDoesNotSendTwice() async {
+    @Test func loginButtonTapped_送信中は2回目を送らない() async {
         let callCount = LockIsolated(0)
         // 1回目の通信を、2回目のタップの後まで終わらせないため
         let (response, finishResponse) = AsyncStream.makeStream(of: Void.self)
@@ -100,7 +100,7 @@ struct LoginFeatureTests {
     }
 
     @Test(arguments: [("", "pass"), ("guest-01", "")])
-    func cannotSubmitWithEmptyField(loginId: String, password: String) async {
+    func loginButtonTapped_空の欄があれば送らない(loginId: String, password: String) async {
         // guestLogin を差し替えていないため、呼ばれればテストが失敗する
         let store = TestStore(initialState: LoginFeature.State(loginId: loginId, password: password)) {
             LoginFeature()
@@ -109,7 +109,7 @@ struct LoginFeatureTests {
         await store.send(.loginButtonTapped)
     }
 
-    @Test func previousMessageIsClearedOnSubmit() async {
+    @Test func loginButtonTapped_前の文言を消す() async {
         let store = TestStore(
             initialState: LoginFeature.State(loginId: "guest-01", password: "pass", errorMessage: "ログインの有効期限が切れました。")
         ) {
@@ -126,7 +126,7 @@ struct LoginFeatureTests {
         await store.receive(\.delegate.loggedIn)
     }
 
-    @Test func guestSignInButtonOpensForm() async {
+    @Test func guestSignInButtonTapped_フォームを開く() async {
         let store = TestStore(initialState: LoginFeature.State()) {
             LoginFeature()
         }

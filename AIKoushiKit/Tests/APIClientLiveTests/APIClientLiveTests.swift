@@ -30,7 +30,7 @@ struct APIClientLiveTests {
     
     // MARK: - bootstrap
     
-    @Test func bootstrapDecodesServerResponse() async throws {
+    @Test func bootstrap_サーバーの応答を読み取る() async throws {
         StubURLProtocol.respond(status: 200, body: Data(bootstrapJSON.utf8))
         
         let response = try await client.bootstrap()
@@ -70,7 +70,7 @@ struct APIClientLiveTests {
         #expect(StubURLProtocol.lastRequest?.url?.path() == "/api/bootstrap")
     }
     
-    @Test func bootstrapReturnsHTTPErrorWithServerMessage() async {
+    @Test func bootstrap_HTTPエラーにサーバーの文言を入れる() async {
         StubURLProtocol.respond(status: 401, body: Data(#"{"error":"unauthorized","message":"ログインが必要です"}"#.utf8))
         
         await #expect(throws: APIClientError.http(status: 401, body: ApiError(error: "unauthorized", message: "ログインが必要です"))) {
@@ -78,7 +78,7 @@ struct APIClientLiveTests {
         }
     }
     
-    @Test func bootstrapReturnsHTTPErrorWithoutBodyWhenNotJSON() async {
+    @Test func bootstrap_JSONでない応答は本文なしのHTTPエラーにする() async {
         StubURLProtocol.respond(status: 500, body: Data("<html>error</html>".utf8))
         
         await #expect(throws: APIClientError.http(status: 500, body: nil)) {
@@ -86,7 +86,7 @@ struct APIClientLiveTests {
         }
     }
     
-    @Test func bootstrapReturnsDecodingErrorForBrokenJSON() async {
+    @Test func bootstrap_壊れたJSONはデコードエラーにする() async {
         StubURLProtocol.respond(status: 200, body: Data(#"{"user":"#.utf8))
         
         await #expect(throws: APIClientError.decoding) {
@@ -94,7 +94,7 @@ struct APIClientLiveTests {
         }
     }
     
-    @Test func bootstrapReturnsNetworkErrorWhenOffline() async {
+    @Test func bootstrap_オフラインなら通信エラーにする() async {
         StubURLProtocol.fail(with: URLError(.notConnectedToInternet))
         
         await #expect(throws: APIClientError.network) {
@@ -102,7 +102,7 @@ struct APIClientLiveTests {
         }
     }
     
-    @Test func cancellationIsNotTreatedAsNetworkError() async {
+    @Test func bootstrap_取り消しを通信エラーとして扱わない() async {
         StubURLProtocol.fail(with: URLError(.cancelled))
         
         await #expect(throws: CancellationError.self) {
@@ -112,7 +112,7 @@ struct APIClientLiveTests {
     
     // MARK: - guestLogin
     
-    @Test func guestLoginSendsLoginIdAndPassword() async throws {
+    @Test func guestLogin_ログインIDとパスワードを送る() async throws {
         StubURLProtocol.respond(status: 204, body: Data())
         
         try await client.guestLogin(loginId: "guest-01", password: "pass")
@@ -125,7 +125,7 @@ struct APIClientLiveTests {
         #expect(body == ["loginId": "guest-01", "password": "pass"])
     }
     
-    @Test func guestLoginReturnsHTTPErrorWhenRateLimited() async {
+    @Test func guestLogin_回数制限ならHTTPエラーにする() async {
         StubURLProtocol.respond(status: 429, body: Data(#"{"error":"too_many_requests","message":"しばらくしてから再度お試しください"}"#.utf8))
         
         await #expect(
@@ -137,7 +137,7 @@ struct APIClientLiveTests {
     
     // MARK: - logout
     
-    @Test func logoutDeletesCookiesOfProductionDomainOnly() async throws {
+    @Test func logout_本番ドメインのCookieだけを消す() async throws {
         let storage = try #require(session.configuration.httpCookieStorage)
         storage.setCookie(try makeCookie(domain: "ai-koushi.yuki-hiraishi.com"))
         storage.setCookie(try makeCookie(domain: "example.com"))
@@ -150,7 +150,7 @@ struct APIClientLiveTests {
         #expect(storage.cookies?.map(\.domain) == ["example.com"])
     }
     
-    @Test func logoutDeletesCookieEvenWhenOffline() async throws {
+    @Test func logout_オフラインでもCookieを消す() async throws {
         let storage = try #require(session.configuration.httpCookieStorage)
         storage.setCookie(try makeCookie(domain: "ai-koushi.yuki-hiraishi.com"))
         StubURLProtocol.fail(with: URLError(.notConnectedToInternet))
@@ -163,7 +163,7 @@ struct APIClientLiveTests {
     
     // MARK: - course
 
-    @Test func courseDecodesServerResponse() async throws {
+    @Test func course_サーバーの応答を読み取る() async throws {
         StubURLProtocol.respond(status: 200, body: Data(courseJSON.utf8))
 
         let course = try await client.course(id: "c1")
@@ -173,7 +173,7 @@ struct APIClientLiveTests {
         #expect(StubURLProtocol.lastRequest?.url?.path() == "/api/courses/c1")
     }
 
-    @Test func courseReturnsHTTPErrorWhenNotFound() async {
+    @Test func course_見つからなければHTTPエラーにする() async {
         StubURLProtocol.respond(status: 404, body: Data(#"{"error":"not_found","message":"講義が見つかりません"}"#.utf8))
 
         await #expect(throws: APIClientError.http(status: 404, body: ApiError(error: "not_found", message: "講義が見つかりません"))) {
@@ -183,7 +183,7 @@ struct APIClientLiveTests {
 
     // MARK: - 受信（streamLecture・sendMessage・regenerate）
 
-    @Test func streamLectureYieldsLinesInOrder() async throws {
+    @Test func streamLecture_行を順に返す() async throws {
         StubURLProtocol.respond(status: 200, body: ndjson(#"{"delta":"コミット"}"#, #"{"delta":"とは"}"#, doneLine))
 
         let lines = try await collect(client.streamLecture(courseId: "c1"))
@@ -193,7 +193,7 @@ struct APIClientLiveTests {
         #expect(StubURLProtocol.lastRequest?.url?.path() == "/api/courses/c1/lecture")
     }
 
-    @Test func sendMessageSendsText() async throws {
+    @Test func sendMessage_文を送る() async throws {
         StubURLProtocol.respond(status: 200, body: ndjson(doneLine))
 
         let lines = try await collect(client.sendMessage(courseId: "c1", text: "なぜ必要？"))
@@ -207,7 +207,7 @@ struct APIClientLiveTests {
         #expect(body == ["text": "なぜ必要？"])
     }
 
-    @Test func regenerateRequestsRegeneratePath() async throws {
+    @Test func regenerate_再生成のパスを呼ぶ() async throws {
         StubURLProtocol.respond(status: 200, body: ndjson(doneLine))
 
         let lines = try await collect(client.regenerate(courseId: "c1"))
@@ -217,7 +217,7 @@ struct APIClientLiveTests {
         #expect(StubURLProtocol.lastRequest?.url?.path() == "/api/courses/c1/regenerate")
     }
 
-    @Test func streamYieldsErrorLineWithoutThrowing() async throws {
+    @Test func streamLecture_error行を投げずに返す() async throws {
         StubURLProtocol.respond(status: 200, body: ndjson(#"{"delta":"途中"}"#, #"{"error":{"message":"失敗","partialSaved":true}}"#))
 
         let lines = try await collect(client.streamLecture(courseId: "c1"))
@@ -225,7 +225,7 @@ struct APIClientLiveTests {
         #expect(lines == [.delta("途中"), .error(message: "失敗")])
     }
 
-    @Test func streamFinishesWithoutThrowingWhenDoneIsMissing() async throws {
+    @Test func streamLecture_doneが無くても投げずに終わる() async throws {
         StubURLProtocol.respond(status: 200, body: ndjson(#"{"delta":"途中"}"#))
 
         let lines = try await collect(client.streamLecture(courseId: "c1"))
@@ -233,7 +233,7 @@ struct APIClientLiveTests {
         #expect(lines == [.delta("途中")])
     }
 
-    @Test func streamJoinsLineSplitAcrossChunks() async throws {
+    @Test func streamLecture_分割されて届いた行をつなぐ() async throws {
         let data = ndjson(#"{"delta":"日本語"}"#, #"{"delta":"続き"}"#)
         // 11バイト目は「日」の途中。2つ目の区切りは次の行の途中
         let chunks = [Data(data.prefix(11)), Data(data.dropFirst(11).dropLast(5)), Data(data.suffix(5))]
@@ -244,7 +244,7 @@ struct APIClientLiveTests {
         #expect(lines == [.delta("日本語"), .delta("続き")])
     }
 
-    @Test func streamDoesNotSplitLineAtUnicodeLineSeparator() async throws {
+    @Test func streamLecture_Unicodeの行区切りでは行を分けない() async throws {
         StubURLProtocol.respond(status: 200, body: ndjson("{\"delta\":\"前\u{2028}後\"}"))
 
         let lines = try await collect(client.streamLecture(courseId: "c1"))
@@ -252,7 +252,7 @@ struct APIClientLiveTests {
         #expect(lines == [.delta("前\u{2028}後")])
     }
 
-    @Test func streamReadsLastLineWithoutNewline() async throws {
+    @Test func streamLecture_改行の無い最後の行も読む() async throws {
         StubURLProtocol.respond(status: 200, body: Data(#"{"delta":"末尾"}"#.utf8))
 
         let lines = try await collect(client.streamLecture(courseId: "c1"))
@@ -260,7 +260,7 @@ struct APIClientLiveTests {
         #expect(lines == [.delta("末尾")])
     }
 
-    @Test func streamThrowsHTTPErrorWithServerMessage() async {
+    @Test func streamLecture_HTTPエラーにサーバーの文言を入れる() async {
         StubURLProtocol.respond(status: 403, body: Data(#"{"error":"limit_exceeded","message":"この講義の生成量が上限に達しました"}"#.utf8))
 
         await #expect(
@@ -271,7 +271,7 @@ struct APIClientLiveTests {
     }
 
     @Test(.timeLimit(.minutes(1)))
-    func streamThrowsNetworkErrorAfterYieldingReceivedLines() async {
+    func streamLecture_届いた行を返してから通信エラーを投げる() async {
         StubURLProtocol.respond(status: 200, chunks: [ndjson(#"{"delta":"途中"}"#)], thenFailWhenReleased: URLError(.networkConnectionLost))
 
         var lines: [LectureStreamLine] = []
@@ -289,7 +289,7 @@ struct APIClientLiveTests {
         #expect(thrown as? APIClientError == .network)
     }
 
-    @Test func streamThrowsDecodingErrorForUnreadableLine() async {
+    @Test func streamLecture_読めない行はデコードエラーを投げる() async {
         StubURLProtocol.respond(status: 200, body: ndjson(#"{"unknown":1}"#))
 
         await #expect(throws: APIClientError.decoding) {
@@ -297,7 +297,7 @@ struct APIClientLiveTests {
         }
     }
 
-    @Test func streamThrowsCancellationErrorWhenCancelled() async {
+    @Test func streamLecture_取り消されたらCancellationErrorを投げる() async {
         StubURLProtocol.fail(with: URLError(.cancelled))
 
         await #expect(throws: CancellationError.self) {
@@ -307,7 +307,7 @@ struct APIClientLiveTests {
 
     // MARK: - completeStep
 
-    @Test func completeStepDecodesServerResponse() async throws {
+    @Test func completeStep_サーバーの応答を読み取る() async throws {
         StubURLProtocol.respond(status: 200, body: Data(courseJSON.utf8))
 
         let course = try await client.completeStep(courseId: "c1", stepId: "s2")
@@ -319,7 +319,7 @@ struct APIClientLiveTests {
 
     // MARK: - usage
 
-    @Test func usageDecodesServerResponse() async throws {
+    @Test func usage_サーバーの応答を読み取る() async throws {
         StubURLProtocol.respond(
             status: 200,
             body: Data(#"{"costUsd":0.42,"costLimitUsd":3,"courses":1,"courseLimit":2,"periodStart":1759244400000}"#.utf8)
@@ -334,7 +334,7 @@ struct APIClientLiveTests {
 
     // MARK: - 待ち時間（§5）
 
-    @Test func everyRequestTimesOutAfter15Seconds() async throws {
+    @Test func すべてのAPIが15秒で時間切れになる() async throws {
         StubURLProtocol.respond(status: 200, body: Data(bootstrapJSON.utf8))
         _ = try await client.bootstrap()
         #expect(StubURLProtocol.lastRequest?.timeoutInterval == 15)

@@ -7,6 +7,7 @@
 
 import Foundation
 import os
+import UIKit
 import WebKit
 
 /// どこまで送ったかは WebView の内部の記録なので、TCA の State ではなくここで持つ
@@ -15,6 +16,7 @@ public final class ConversationCoordinator: NSObject {
     static let messageHandlerName = "conversation"
 
     var onLinkTap: (URL) -> Void = { _ in }
+    var onScrollBoxTouch: (Bool) -> Void = { _ in }
     var onError: (WebMessage.ErrorKind, String) -> Void = ConversationCoordinator.reportError
 
     private weak var webView: WKWebView?
@@ -35,6 +37,12 @@ public final class ConversationCoordinator: NSObject {
         webView.scrollView.backgroundColor = .clear
         webView.allowsLinkPreview = false
         webView.navigationDelegate = self
+        webView.scrollView.keyboardDismissMode = .interactive
+        let tap = UITapGestureRecognizer(target: self, action: #selector(webViewTapped(_:)))
+        // リンクの操作やスクロールを妨げない（§3.2）
+        tap.cancelsTouchesInView = false
+        tap.delegate = self
+        webView.addGestureRecognizer(tap)
         #if DEBUG
         webView.isInspectable = true
         #endif
@@ -51,6 +59,10 @@ public final class ConversationCoordinator: NSObject {
         self.content = content
         self.configuration = configuration
         send()
+    }
+
+    @objc private func webViewTapped(_ recognizer: UITapGestureRecognizer) {
+        recognizer.view?.window?.endEditing(true)
     }
 
     private func load(_ webView: WKWebView) {
@@ -105,6 +117,8 @@ public final class ConversationCoordinator: NSObject {
             if let url = WebMessage.browserURL(string) {
                 onLinkTap(url)
             }
+        case let .scrollBoxTouched(canScrollBack):
+            onScrollBoxTouch(canScrollBack)
         case let .error(kind, message):
             onError(kind, message)
         }
@@ -127,6 +141,15 @@ public final class ConversationCoordinator: NSObject {
             assertionFailure("\(kind.rawValue)：\(message)")
         }
         #endif
+    }
+}
+
+extension ConversationCoordinator: UIGestureRecognizerDelegate {
+    public func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        true
     }
 }
 

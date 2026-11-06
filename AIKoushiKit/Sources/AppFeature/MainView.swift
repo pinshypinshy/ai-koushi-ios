@@ -16,6 +16,7 @@ struct MainView: View {
     let store: StoreOf<MainFeature>
     // 指を離したら、開閉と同じアニメーションで元に戻す
     @GestureState(resetTransaction: Transaction(animation: Self.snapAnimation)) private var dragTranslation: CGFloat = 0
+    @State private var swipeGate = SidebarSwipeGate()
 
     private static let snapAnimation = Animation.snappy(duration: 0.2)
     // これより速く払ったら、ずれた量に関係なく払った向きに従う（§3.4）
@@ -32,7 +33,11 @@ struct MainView: View {
                     .frame(width: sidebarWidth)
                     .accessibilityHidden(!store.isSidebarOpen)
 
-                CourseView(store: store.scope(state: \.course, action: \.course))
+                CourseView(
+                    store: store.scope(state: \.course, action: \.course),
+                    isSidebarOpen: store.isSidebarOpen,
+                    onScrollBoxTouch: { swipeGate.isBlocked = $0 }
+                )
                     .allowsHitTesting(!store.isSidebarOpen)
                     .accessibilityHidden(store.isSidebarOpen)
                     .overlay {
@@ -67,11 +72,20 @@ struct MainView: View {
     private func dragGesture(sidebarWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 10)
             .updating($dragTranslation) { value, state, _ in
+                // 通知は少し遅れて届くことがあるので、動くたびに確かめて元の位置に戻す
+                guard !swipeGate.isBlocked else {
+                    state = 0
+                    return
+                }
                 // 縦の動きはサイドバーの一覧のスクロールに任せる
                 guard abs(value.translation.width) > abs(value.translation.height) else { return }
                 state = value.translation.width
             }
             .onEnded { value in
+                let isBlocked = swipeGate.isBlocked
+                // 枠のスクロール中は touchend が届かないことがあるため、ここでも解除する
+                swipeGate.isBlocked = false
+                guard !isBlocked else { return }
                 guard abs(value.translation.width) > abs(value.translation.height) else { return }
                 let shouldOpen: Bool
                 if abs(value.velocity.width) >= Self.flickVelocity {
@@ -84,6 +98,13 @@ struct MainView: View {
                 store.send(shouldOpen ? .sidebarSwipedOpen : .sidebarSwipedClosed)
             }
     }
+}
+
+/// 指の動きの判定にだけ使う一時的な情報なので、TCA の State に入れない。
+/// ドラッグの途中で変わった値を読むため、値の型にしない（§3.4）
+@MainActor
+private final class SidebarSwipeGate {
+    var isBlocked = false
 }
 
 #if DEBUG

@@ -29,14 +29,6 @@ struct LectureFeatureTests {
         await makeStore(busyState(activity)).send(.fetchRequested)
     }
 
-    // MARK: - summaryChanged
-
-    @Test func summaryChanged_要約を更新する() async {
-        let changed = CourseSummary.mock(status: .failed)
-
-        await makeStore(.init(summary: .mock())).send(.summaryChanged(changed)) { $0.summary = changed }
-    }
-
     // MARK: - startLectureIfNeeded
 
     @Test func startLectureIfNeeded_発言の無いステップで1回だけ呼ぶ() async {
@@ -224,6 +216,7 @@ struct LectureFeatureTests {
             $0.stepCompletionErrorMessage = LectureFeature.networkErrorMessage
             $0.activity = .idle
         }
+        await store.receive(\.delegate.usageRefreshRequested)
     }
 
     @Test func completeStepButtonTapped_発言が無ければ何もしない() async {
@@ -251,6 +244,7 @@ struct LectureFeatureTests {
             $0.detail = detail
             $0.activity = .idle
         }
+        await store.receive(\.delegate.courseUpdated)
     }
 
     // MARK: - progressPanelTapped
@@ -291,6 +285,7 @@ struct LectureFeatureTests {
             $0.detail = detail
             $0.activity = .idle
         }
+        await store.receive(\.delegate.courseUpdated)
     }
 
     @Test func fetchSucceeded_発言が無ければ講義本文を始める() async {
@@ -305,11 +300,25 @@ struct LectureFeatureTests {
             $0.detail = detail
             $0.activity = .streaming(text: "", replacingMessageID: nil)
         }
+        await store.receive(\.delegate.courseUpdated)
         await store.receive(\.streamLineReceived) {
             $0.detail = .mock(messages: [.assistant("a1")])
             $0.activity = .idle
         }
         await store.receive(\.delegate.usageRefreshRequested)
+    }
+
+    @Test func fetchSucceeded_取得した講義の要約を親に渡す() async {
+        let detail = CourseDetail.mock(completedSteps: 1, messages: [.assistant("a1")])
+        let store = makeStore(.init(summary: .mock()), withDependencies: { $0.apiClient.course = { _ in detail } })
+
+        await store.send(.fetchRequested) { $0.activity = .fetching }
+        await store.receive(\.fetchSucceeded) {
+            $0.summary = detail.summary
+            $0.detail = detail
+            $0.activity = .idle
+        }
+        await store.receive(\.delegate.courseUpdated, detail.summary)
     }
 
     // MARK: - fetchFailed
@@ -427,6 +436,7 @@ struct LectureFeatureTests {
             $0.detail = reloaded
             $0.activity = .idle
         }
+        await store.receive(\.delegate.courseUpdated)
     }
 
     @Test func streamLineReceived_errorで途中の文字が隠した発言に代わる() async {
@@ -476,6 +486,7 @@ struct LectureFeatureTests {
         await store.receive(\.delegate.usageRefreshRequested)
         // エラーを表示しているので、同じステップの講義本文を自動で呼び直さない（§4.7）
         await store.receive(\.reloadSucceeded) { $0.activity = .idle }
+        await store.receive(\.delegate.courseUpdated)
     }
 
     // MARK: - streamFailed
@@ -504,6 +515,7 @@ struct LectureFeatureTests {
             $0.detail = reloaded
             $0.activity = .idle
         }
+        await store.receive(\.delegate.courseUpdated)
     }
 
     @Test func streamFailed_401ならセッション切れにする() async {
@@ -554,11 +566,26 @@ struct LectureFeatureTests {
             $0.detail = reloaded
             $0.activity = .streaming(text: "", replacingMessageID: nil)
         }
+        await store.receive(\.delegate.courseUpdated)
         await store.receive(\.streamLineReceived) {
             $0.detail = .mock(currentStepId: "s2", messages: [.assistant("a1"), .assistant("a2", stepId: "s2")])
             $0.activity = .idle
         }
         await store.receive(\.delegate.usageRefreshRequested)
+    }
+
+    @Test func reloadSucceeded_読み直した講義の要約を親に渡す() async {
+        let reloaded = CourseDetail.mock(completedSteps: 1, messages: [.assistant("a1")])
+        var state = LectureFeature.State(summary: .mock(), detail: .mock(messages: [.assistant("a1")]))
+        state.activity = .reloading(partialText: nil)
+        let store = makeStore(state)
+
+        await store.send(.reloadSucceeded(reloaded)) {
+            $0.summary = reloaded.summary
+            $0.detail = reloaded
+            $0.activity = .idle
+        }
+        await store.receive(\.delegate.courseUpdated, reloaded.summary)
     }
 
     // MARK: - reloadFailed
@@ -668,7 +695,7 @@ struct LectureFeatureTests {
 
     // MARK: - stepCompletionFailed
 
-    @Test func stepCompletionFailed_通信エラーなら文言だけ表示する() async {
+    @Test func stepCompletionFailed_通信エラーなら読み直さず利用状況を取り直す() async {
         let store = makeStore(.init(summary: .mock(), detail: .mock(messages: [.assistant("a1")])), withDependencies: {
             $0.apiClient.completeStep = { _, _ in throw APIClientError.network }
         })
@@ -678,9 +705,10 @@ struct LectureFeatureTests {
             $0.stepCompletionErrorMessage = LectureFeature.networkErrorMessage
             $0.activity = .idle
         }
+        await store.receive(\.delegate.usageRefreshRequested)
     }
 
-    @Test func stepCompletionFailed_409なら文言を表示して読み直す() async {
+    @Test func stepCompletionFailed_409なら読み直して利用状況を取り直す() async {
         let reloaded = CourseDetail.mock(currentStepId: nil, messages: [.assistant("a1")])
         let store = makeStore(.init(summary: .mock(), detail: .mock(messages: [.assistant("a1")])), withDependencies: {
             $0.apiClient.completeStep = { _, _ in throw APIClientError.http(status: 409, body: nil) }
@@ -692,10 +720,12 @@ struct LectureFeatureTests {
             $0.stepCompletionErrorMessage = LectureFeature.stepCompletionOtherErrorMessage
             $0.activity = .reloading(partialText: nil)
         }
+        await store.receive(\.delegate.usageRefreshRequested)
         await store.receive(\.reloadSucceeded) {
             $0.detail = reloaded
             $0.activity = .idle
         }
+        await store.receive(\.delegate.courseUpdated)
     }
 
     @Test func stepCompletionFailed_401ならセッション切れにする() async {
@@ -772,6 +802,72 @@ struct LectureFeatureTests {
         var unanswered = LectureFeature.State(summary: .mock(), detail: .mock(messages: [.user("u1")]))
         unanswered.streamErrorMessage = "失敗"
         #expect(unanswered.visibleStreamError == nil)
+    }
+
+    // MARK: - isStatusOutdated
+
+    @Test func isStatusOutdated_一覧の状態と表示中の講義の状態を比べる() {
+        #expect(!LectureFeature.State(summary: .mock(status: .ready)).isStatusOutdated)
+        #expect(!LectureFeature.State(summary: .mock(status: .ready), detail: .mock(status: .ready)).isStatusOutdated)
+        #expect(LectureFeature.State(summary: .mock(status: .ready), detail: .mock(status: .generating)).isStatusOutdated)
+    }
+
+    // MARK: - 画面に出すものの判定
+
+    @Test func displayedStatus_取得済みなら取得した講義の状態を使う() {
+        #expect(LectureFeature.State(summary: .mock(status: .generating)).displayedStatus == .generating)
+        #expect(LectureFeature.State(summary: .mock(status: .ready), detail: .mock(status: .generating)).displayedStatus == .generating)
+    }
+
+    @Test func isAllStepsCompleted_現在のステップが無ければtrueになる() {
+        #expect(LectureFeature.State(summary: .mock(), detail: .mock(currentStepId: nil)).isAllStepsCompleted)
+        #expect(!LectureFeature.State(summary: .mock(), detail: .mock(currentStepId: "s1")).isAllStepsCompleted)
+        #expect(!LectureFeature.State(summary: .mock()).isAllStepsCompleted)
+    }
+
+    @Test func isLastStep_最後のステップだけtrueになる() {
+        #expect(!LectureFeature.State(summary: .mock(), detail: .mock(currentStepId: "s1")).isLastStep)
+        #expect(LectureFeature.State(summary: .mock(), detail: .mock(currentStepId: "s2")).isLastStep)
+        #expect(!LectureFeature.State(summary: .mock(), detail: .mock(currentStepId: nil)).isLastStep)
+    }
+
+    @Test func progressTitle_現在のステップか全ステップ完了を返す() {
+        #expect(LectureFeature.State(summary: .mock(), detail: .mock(currentStepId: "s2")).progressTitle == "ステップ 2 / 2・まとめ")
+        #expect(LectureFeature.State(summary: .mock(), detail: .mock(currentStepId: nil)).progressTitle == "全ステップ完了")
+        #expect(LectureFeature.State(summary: .mock()).progressTitle == nil)
+    }
+
+    @Test func completedStepCount_完了したステップを数える() {
+        let detail = CourseDetail(
+            summary: .mock(),
+            currentStepId: "s2",
+            steps: [
+                ApiStep(id: "s1", orderIndex: 1, title: "はじめに", status: .completed),
+                ApiStep(id: "s2", orderIndex: 2, title: "まとめ", status: .inProgress),
+            ],
+            messages: []
+        )
+        #expect(LectureFeature.State(summary: .mock(), detail: detail).completedStepCount == 1)
+    }
+
+    @Test func showsCompleteStepButton_要件の条件どおりに判定する() {
+        var state = LectureFeature.State(summary: .mock(), detail: .mock(messages: [.assistant("a1")]))
+        #expect(state.showsCompleteStepButton)
+
+        state.streamErrorMessage = "失敗"
+        #expect(state.showsCompleteStepButton)
+
+        state.activity = .streaming(text: "", replacingMessageID: nil)
+        #expect(!state.showsCompleteStepButton)
+
+        state.activity = .completingStep
+        #expect(state.showsCompleteStepButton)
+
+        state.activity = .reloading(partialText: nil)
+        #expect(state.showsCompleteStepButton)
+
+        #expect(!LectureFeature.State(summary: .mock(), detail: .mock()).showsCompleteStepButton)
+        #expect(!LectureFeature.State(summary: .mock(), detail: .mock(currentStepId: nil, messages: [.assistant("a1")])).showsCompleteStepButton)
     }
 
     // MARK: - 補助

@@ -12,23 +12,25 @@ import SwiftUI
 
 public struct CourseView: View {
     let store: StoreOf<CourseFeature>
+    let isSidebarOpen: Bool
+    let onScrollBoxTouch: (Bool) -> Void
 
-    public init(store: StoreOf<CourseFeature>) {
+    public init(
+        store: StoreOf<CourseFeature>,
+        isSidebarOpen: Bool = false,
+        onScrollBoxTouch: @escaping (Bool) -> Void = { _ in }
+    ) {
         self.store = store
+        self.isSidebarOpen = isSidebarOpen
+        self.onScrollBoxTouch = onScrollBoxTouch
     }
 
     public var body: some View {
         NavigationStack {
             Group {
-                if let course = store.course {
-                    VStack(spacing: 8) {
-                        Text(course.title)
-                            .font(.title2.bold())
-                            .foregroundStyle(AppColor.primaryText)
-                            .multilineTextAlignment(.center)
-                        CourseStatusLabel(course: course)
-                    }
-                    .padding()
+                if let id = store.selectedCourseID,
+                   let lectureStore = store.scope(state: \.lectures[id: id], action: \.lectures[id: id]) {
+                    LectureView(store: lectureStore, isSidebarOpen: isSidebarOpen, onScrollBoxTouch: onScrollBoxTouch)
                 } else {
                     ContentUnavailableView {
                         Text("まだ講義がありません")
@@ -42,6 +44,8 @@ public struct CourseView: View {
                     }
                 }
             }
+            .navigationTitle(store.selectedLecture?.summary.title ?? "")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -53,24 +57,25 @@ public struct CourseView: View {
                 }
             }
         }
+        .task { store.send(.task) }
     }
 }
 
 #if DEBUG
 #Preview("講義あり") {
-    CourseView(store: Store(initialState: CourseFeature.State(course: .preview(status: .ready))) { CourseFeature() })
+    CourseView(store: Store(initialState: CourseFeature.State(courses: [.preview(status: .ready)], selected: nil)) { CourseFeature() })
 }
 
 #Preview("生成中") {
-    CourseView(store: Store(initialState: CourseFeature.State(course: .preview(status: .generating))) { CourseFeature() })
+    CourseView(store: Store(initialState: CourseFeature.State(courses: [.preview(status: .generating)], selected: nil)) { CourseFeature() })
 }
 
 #Preview("生成失敗") {
-    CourseView(store: Store(initialState: CourseFeature.State(course: .preview(status: .failed))) { CourseFeature() })
+    CourseView(store: Store(initialState: CourseFeature.State(courses: [.preview(status: .failed)], selected: nil)) { CourseFeature() })
 }
 
 #Preview("空状態") {
-    CourseView(store: Store(initialState: CourseFeature.State(course: nil)) { CourseFeature() })
+    CourseView(store: Store(initialState: CourseFeature.State(courses: [], selected: nil)) { CourseFeature() })
 }
 
 private extension CourseSummary {

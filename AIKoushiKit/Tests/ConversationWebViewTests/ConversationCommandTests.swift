@@ -118,6 +118,7 @@ struct WebMessageTests {
         }
         #expect(try decode(#"{"type":"ready"}"#) == .ready)
         #expect(try decode(#"{"type":"linkTapped","url":"https://example.com/"}"#) == .linkTapped("https://example.com/"))
+        #expect(try decode(#"{"type":"scrollBoxTouched","canScrollBack":true}"#) == .scrollBoxTouched(canScrollBack: true))
         #expect(try decode(#"{"type":"error","kind":"math","message":"m"}"#) == .error(kind: .math, message: "m"))
         #expect(throws: DecodingError.self) { try decode(#"{"type":"unknown"}"#) }
     }

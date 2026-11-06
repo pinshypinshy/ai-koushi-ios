@@ -109,6 +109,32 @@ struct ConversationRenderingTests {
         #expect(harness.errors.isEmpty)
     }
 
+    @Test func 枠をまだ右へ戻せるときだけSwiftへ知らせる() async throws {
+        let harness = RenderingHarness()
+        var received: [Bool] = []
+        harness.coordinator.onScrollBoxTouch = { received.append($0) }
+        let entries = (1...30).map { "a_{\($0)}" }.joined(separator: " & ")
+        let markdown = "本文\n\n$$\n\\begin{pmatrix} \(entries) \\end{pmatrix}\n$$"
+        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: markdown)], streaming: nil))
+        try await harness.waitUntil("document.querySelector('.katex-display') !== null")
+
+        func dispatch(_ type: String, on selector: String) async throws -> Bool {
+            received = []
+            _ = try await harness.evaluate(
+                "document.querySelector('\(selector)').dispatchEvent(new Event('\(type)', { bubbles: true }))"
+            )
+            try await harness.waitUntil { !received.isEmpty }
+            return try #require(received.first)
+        }
+
+        #expect(try await dispatch("touchstart", on: ".katex-display .katex") == false)
+        _ = try await harness.evaluate("document.querySelector('.katex-display').scrollLeft = 40")
+        #expect(try await harness.evaluate("document.querySelector('.katex-display').scrollLeft > 0") == "true")
+        #expect(try await dispatch("touchstart", on: ".katex-display .katex") == true)
+        #expect(try await dispatch("touchend", on: ".katex-display .katex") == false)
+        #expect(try await dispatch("touchstart", on: "[data-id=\"a1\"] p") == false)
+    }
+
     @Test func httpとhttpsのリンクだけをSwiftへ渡す() async throws {
         let harness = RenderingHarness()
         var opened: [URL] = []

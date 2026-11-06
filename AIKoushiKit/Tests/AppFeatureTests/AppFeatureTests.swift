@@ -8,6 +8,7 @@
 import APIClient
 @testable import AppFeature
 import ComposableArchitecture
+@testable import CourseFeature
 import LoginFeature
 import Models
 import SidebarFeature
@@ -149,5 +150,86 @@ struct AppFeatureTests {
         await store.receive(\.main.delegate.logoutRequested) { $0 = .loggingOut }
         await store.receive(\.logoutFinished) { $0 = .login(LoginFeature.State()) }
         finishResponse.yield()
+    }
+
+    @Test func main_ログアウトしたらすべての受信をやめる() async {
+        let streams = LectureStreams()
+        defer { streams.finish() }
+        let store = makeStoreWithTwoLectures(streams) { $0.apiClient.logout = {} }
+
+        await startStreaming(store, "c1")
+        await startStreaming(store, "c2")
+        await store.send(.main(.sidebar(.logoutButtonTapped)))
+        await store.receive(\.main.sidebar.delegate.logoutRequested)
+        await store.receive(\.main.delegate.logoutRequested) { $0 = .loggingOut }
+        await store.receive(\.logoutFinished) { $0 = .login(LoginFeature.State()) }
+
+        // やめられていなければ、Effect が終わらないか、届いた Action が未確認のまま残って失敗する
+        streams.yield(.delta("遅れた文字"))
+        await store.finish()
+    }
+
+    @Test func main_セッションが切れたらすべての受信をやめる() async {
+        let streams = LectureStreams()
+        defer { streams.finish() }
+        let store = makeStoreWithTwoLectures(streams) {
+            $0.apiClient.bootstrap = { throw APIClientError.http(status: 401, body: nil) }
+        }
+
+        await startStreaming(store, "c1")
+        await startStreaming(store, "c2")
+        await store.send(.main(.sidebar(.refreshPulled)))
+        await store.receive(\.main.sidebar.refreshFailed)
+        await store.receive(\.main.sidebar.delegate.sessionExpired)
+        await store.receive(\.main.delegate.sessionExpired) {
+            $0 = .login(LoginFeature.State(errorMessage: AppFeature.sessionExpiredMessage))
+        }
+
+        streams.yield(.delta("遅れた文字"))
+        await store.finish()
+    }
+
+    // MARK: - 補助
+
+    private func makeStoreWithTwoLectures(
+        _ streams: LectureStreams,
+        withDependencies: (inout DependencyValues) -> Void
+    ) -> TestStoreOf<AppFeature> {
+        var main = MainFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))
+        main.course.lectures = [
+            .init(summary: .mock("c1"), detail: CourseDetail(summary: .mock("c1"), currentStepId: "s1", steps: [], messages: [])),
+            .init(summary: .mock("c2"), detail: CourseDetail(summary: .mock("c2"), currentStepId: "s1", steps: [], messages: [])),
+        ]
+        return TestStore(initialState: AppFeature.State.main(main)) {
+            AppFeature()
+        } withDependencies: {
+            $0.apiClient.streamLecture = { streams.stream(for: $0) }
+            withDependencies(&$0)
+        }
+    }
+
+    private func startStreaming(_ store: TestStoreOf<AppFeature>, _ id: String) async {
+        await store.send(.main(.course(.lectures(.element(id: id, action: .startLectureIfNeeded))))) {
+            $0.modify(\.main) { $0.course.lectures[id: id]?.activity = .streaming(text: "", replacingMessageID: nil) }
+        }
+    }
+}
+
+private struct LectureStreams {
+    private let c1 = AsyncThrowingStream.makeStream(of: LectureStreamLine.self, throwing: (any Error).self)
+    private let c2 = AsyncThrowingStream.makeStream(of: LectureStreamLine.self, throwing: (any Error).self)
+
+    func stream(for id: String) -> AsyncThrowingStream<LectureStreamLine, any Error> {
+        id == "c1" ? c1.stream : c2.stream
+    }
+
+    func yield(_ line: LectureStreamLine) {
+        c1.continuation.yield(line)
+        c2.continuation.yield(line)
+    }
+
+    func finish() {
+        c1.continuation.finish()
+        c2.continuation.finish()
     }
 }

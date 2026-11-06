@@ -62,7 +62,6 @@ public struct LectureFeature {
 
     public enum Action {
         case fetchRequested
-        case summaryChanged(CourseSummary)
         case startLectureIfNeeded
 
         case draftChanged(String)
@@ -111,10 +110,6 @@ public struct LectureFeature {
             case .fetchRequested, .retryFetchButtonTapped:
                 return fetch(&state)
                 
-            case let .summaryChanged(summary):
-                state.summary = summary
-                return .none
-                
             case .startLectureIfNeeded:
                 return startLectureIfNeeded(&state)
                 
@@ -142,7 +137,10 @@ public struct LectureFeature {
 
             case let .fetchSucceeded(detail):
                 state.replaceCourse(with: detail)
-                return startLectureIfNeeded(&state)
+                return .merge(
+                    .send(.delegate(.courseUpdated(detail.summary))),
+                    startLectureIfNeeded(&state)
+                )
 
             case let .fetchFailed(error):
                 if error is CancellationError { return .none }
@@ -181,7 +179,10 @@ public struct LectureFeature {
 
             case let .reloadSucceeded(detail):
                 state.replaceCourse(with: detail)
-                return startLectureIfNeeded(&state)
+                return .merge(
+                    .send(.delegate(.courseUpdated(detail.summary))),
+                    startLectureIfNeeded(&state)
+                )
 
             case let .reloadFailed(error):
                 switch error {
@@ -213,11 +214,14 @@ public struct LectureFeature {
                 case APIClientError.network:
                     state.stepCompletionErrorMessage = Self.networkErrorMessage
                     state.activity = .idle
-                    return .none
+                    return .send(.delegate(.usageRefreshRequested))
                 default:
                     state.stepCompletionErrorMessage = Self.stepCompletionOtherErrorMessage
                     state.activity = .reloading(partialText: nil)
-                    return reload(state)
+                    return .merge(
+                        .send(.delegate(.usageRefreshRequested)),
+                        reload(state)
+                    )
                 }
 
             case .delegate:
@@ -361,6 +365,57 @@ extension LectureFeature.State {
         guard activity == .idle, streamErrorMessage == nil, let detail, detail.summary.status == .ready else { return false }
         guard detail.currentStepId != nil else { return false }
         return conversationStepMessages.isEmpty
+    }
+
+    /// §3.2
+    var displayedStatus: CourseStatus {
+        detail?.summary.status ?? summary.status
+    }
+
+    var isFetching: Bool {
+        activity == .fetching
+    }
+
+    var isStreaming: Bool {
+        if case .streaming = activity { true } else { false }
+    }
+
+    var isCompletingStep: Bool {
+        activity == .completingStep
+    }
+
+    var isAllStepsCompleted: Bool {
+        guard let detail else { return false }
+        return detail.currentStepId == nil && !detail.steps.isEmpty
+    }
+
+    var currentStep: ApiStep? {
+        detail?.steps.first { $0.id == detail?.currentStepId }
+    }
+
+    var isLastStep: Bool {
+        currentStep != nil && currentStep?.id == detail?.steps.last?.id
+    }
+
+    var completedStepCount: Int {
+        detail?.steps.count { $0.status == .completed } ?? 0
+    }
+
+    /// §3.2 の進捗パネルを折りたたんだときの1行
+    var progressTitle: String? {
+        guard let detail else { return nil }
+        if isAllStepsCompleted { return "全ステップ完了" }
+        return currentStep.map { "ステップ \($0.orderIndex) / \(detail.steps.count)・\($0.title)" }
+    }
+
+    /// 読み直しの間も出すが、押せない（§3.2）
+    var showsCompleteStepButton: Bool {
+        currentStep != nil && !isStreaming && !conversationStepMessages.isEmpty
+    }
+
+    /// §4.6
+    var isStatusOutdated: Bool {
+        detail.map { $0.summary.status != summary.status } ?? false
     }
 
     var canSend: Bool {

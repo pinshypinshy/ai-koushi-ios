@@ -20,7 +20,7 @@ public struct SidebarFeature {
         public internal(set) var selectedCourseID: CourseSummary.ID?
         var refreshErrorMessage: String?
 
-        public var selectedCourse: CourseSummary? {
+        var selectedCourse: CourseSummary? {
             courses.first { $0.id == selectedCourseID }
         }
 
@@ -37,6 +37,10 @@ public struct SidebarFeature {
         case refreshPulled
         case refreshSucceeded(BootstrapResponse)
         case refreshFailed(any Error)
+        case usageRefreshRequested
+        case usageRefreshSucceeded(UsageSummary)
+        case usageRefreshFailed(any Error)
+        case courseUpdated(CourseSummary)
         case logoutButtonTapped
         case delegate(Delegate)
 
@@ -51,7 +55,10 @@ public struct SidebarFeature {
     static let networkErrorMessage = "通信できませんでした。ネットワーク接続を確認してください。"
     static let otherErrorMessage = "講義一覧を更新できませんでした。時間をおいて再度お試しください。"
 
-    private enum CancelID { case refresh }
+    private enum CancelID {
+        case refresh
+        case usageRefresh
+    }
 
     @Dependency(\.apiClient) var apiClient
 
@@ -97,6 +104,35 @@ public struct SidebarFeature {
                     state.refreshErrorMessage = Self.otherErrorMessage
                     return .none
                 }
+
+            case .usageRefreshRequested:
+                return .run { [apiClient] send in
+                    do {
+                        await send(.usageRefreshSucceeded(try await apiClient.usage()))
+                    } catch {
+                        await send(.usageRefreshFailed(error))
+                    }
+                }
+                .cancellable(id: CancelID.usageRefresh, cancelInFlight: true)
+
+            case let .usageRefreshSucceeded(usage):
+                state.usage = usage
+                return .none
+
+            case let .usageRefreshFailed(error):
+                switch error {
+                case APIClientError.http(status: 401, body: _):
+                    return .send(.delegate(.sessionExpired))
+                default:
+                    // 表示中の利用状況を残し、文言も出さない（§4.12）
+                    return .none
+                }
+
+            case let .courseUpdated(course):
+                if let index = state.courses.firstIndex(where: { $0.id == course.id }) {
+                    state.courses[index] = course
+                }
+                return .none
 
             case .logoutButtonTapped:
                 return .send(.delegate(.logoutRequested))

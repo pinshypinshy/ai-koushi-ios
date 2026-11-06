@@ -19,9 +19,8 @@ public struct MainFeature {
         var isSidebarOpen = false
 
         init(bootstrap: BootstrapResponse) {
-            let sidebar = SidebarFeature.State(bootstrap: bootstrap)
-            self.sidebar = sidebar
-            self.course = CourseFeature.State(course: sidebar.selectedCourse)
+            self.sidebar = SidebarFeature.State(bootstrap: bootstrap)
+            self.course = CourseFeature.State(courses: bootstrap.courses, selected: bootstrap.selected)
         }
     }
 
@@ -54,8 +53,14 @@ public struct MainFeature {
                     state.isSidebarOpen = false
                     return .none
 
-                case .sidebar(.delegate(.sessionExpired)):
+                case .sidebar(.delegate(.sessionExpired)), .course(.delegate(.sessionExpired)):
                     return .send(.delegate(.sessionExpired))
+
+                case .course(.delegate(.usageRefreshRequested)):
+                    return .send(.sidebar(.usageRefreshRequested))
+
+                case let .course(.delegate(.courseUpdated(course))):
+                    return .send(.sidebar(.courseUpdated(course)))
 
                 case .sidebar(.delegate(.logoutRequested)):
                     return .send(.delegate(.logoutRequested))
@@ -66,11 +71,15 @@ public struct MainFeature {
             }
         }
         // 講義の行を押したときも、取り直しで選択や講義の中身が変わったときも追従させる
-        .onChange(of: \.sidebar.selectedCourse) { _, selectedCourse in
-            Reduce { state, _ in
-                state.course.course = selectedCourse
-                return .none
+        .onChange(of: { CourseListSnapshot(courses: $0.sidebar.courses, selectedCourseID: $0.sidebar.selectedCourseID) }) { _, snapshot in
+            Reduce { _, _ in
+                .send(.course(.coursesChanged(courses: snapshot.courses, selectedCourseID: snapshot.selectedCourseID)))
             }
         }
     }
+}
+
+private struct CourseListSnapshot: Equatable {
+    let courses: [CourseSummary]
+    let selectedCourseID: CourseSummary.ID?
 }

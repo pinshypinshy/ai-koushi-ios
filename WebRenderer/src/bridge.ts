@@ -5,6 +5,7 @@ export type ErrorKind = 'script' | 'command' | 'math'
 export type WebMessage =
   | { readonly type: 'ready' }
   | { readonly type: 'linkTapped'; readonly url: string }
+  | { readonly type: 'scrollBoxTouched'; readonly canScrollBack: boolean }
   | { readonly type: 'error'; readonly kind: ErrorKind; readonly message: string }
 
 declare global {

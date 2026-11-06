@@ -26,6 +26,25 @@ document.addEventListener('click', (event) => {
   post({ type: 'linkTapped', url: anchor.href })
 })
 
+// 枠を右へ戻すスライドで、サイドバーが開かないようにする（§3.4）。
+// touchcancel では解除しない。スクロールが始まると届くことがあり、スライドの途中で開いてしまうため
+const SCROLL_BOX_SELECTOR = 'pre, table, .katex-display, .math-scroll'
+document.addEventListener(
+  'touchstart',
+  (event) => {
+    const box = event.target instanceof Element ? event.target.closest(SCROLL_BOX_SELECTOR) : null
+    post({ type: 'scrollBoxTouched', canScrollBack: box !== null && box.scrollLeft > 0 })
+  },
+  { passive: true },
+)
+document.addEventListener(
+  'touchend',
+  () => {
+    post({ type: 'scrollBoxTouched', canScrollBack: false })
+  },
+  { passive: true },
+)
+
 window.conversation = {
   apply(json) {
     try {

@@ -11,6 +11,7 @@ import Foundation
 enum WebMessage: Equatable, Decodable {
     case ready
     case linkTapped(String)
+    case scrollBoxTouched(canScrollBack: Bool)
     case error(kind: ErrorKind, message: String)
 
     enum ErrorKind: String, Equatable, Decodable {
@@ -20,7 +21,7 @@ enum WebMessage: Equatable, Decodable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case type, url, kind, message
+        case type, url, canScrollBack, kind, message
     }
 
     init(from decoder: any Decoder) throws {
@@ -31,6 +32,8 @@ enum WebMessage: Equatable, Decodable {
             self = .ready
         case "linkTapped":
             self = .linkTapped(try container.decode(String.self, forKey: .url))
+        case "scrollBoxTouched":
+            self = .scrollBoxTouched(canScrollBack: try container.decode(Bool.self, forKey: .canScrollBack))
         case "error":
             self = .error(
                 kind: try container.decode(ErrorKind.self, forKey: .kind),

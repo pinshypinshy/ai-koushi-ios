@@ -52,6 +52,16 @@ extension APIClient: DependencyKey {
             usage: {
                 let data = try await send(makeRequest(baseURL, "GET", "api/usage"), session: session)
                 return try decode(UsageSummary.self, from: data)
+            },
+            quiz: { courseId in
+                let data = try await send(makeRequest(baseURL, "GET", "api/courses/\(courseId)/quiz"), session: session)
+                return try decode(QuizResponse.self, from: data)
+            },
+            attempt: { questionId, selectedChoiceId in
+                // guestLogin と同じ理由で try! を使っている
+                let body = try! JSONEncoder().encode(AttemptRequest(selectedChoiceId: selectedChoiceId))
+                let data = try await send(makeRequest(baseURL, "POST", "api/questions/\(questionId)/attempts", body: body), session: session)
+                return try decode(AttemptResult.self, from: data)
             }
         )
     }
@@ -158,4 +168,8 @@ private struct GuestLoginRequest: Encodable {
 
 private struct SendMessageRequest: Encodable {
     let text: String
+}
+
+private struct AttemptRequest: Encodable {
+    let selectedChoiceId: String
 }

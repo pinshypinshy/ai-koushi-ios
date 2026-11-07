@@ -332,6 +332,78 @@ struct APIClientLiveTests {
         #expect(StubURLProtocol.lastRequest?.url?.path() == "/api/usage")
     }
 
+    // MARK: - quiz
+
+    @Test func quiz_サーバーの応答を読み取る() async throws {
+        StubURLProtocol.respond(
+            status: 200,
+            body: Data(
+                #"""
+                {"questions":[{"id":"q1","stem":"問題文","choices":[{"id":"ch1","body":"選択肢1"},{"id":"ch2","body":"選択肢2"}],"coveredStepIds":["s1","s2"]}],
+                "latestAttempts":[{"questionId":"q1","isCorrect":false,"answeredAt":1759244400000}]}
+                """#.utf8
+            )
+        )
+
+        let quiz = try await client.quiz(courseId: "c1")
+
+        #expect(
+            quiz == QuizResponse(
+                questions: [
+                    ApiQuestion(
+                        id: "q1",
+                        stem: "問題文",
+                        choices: [ApiChoice(id: "ch1", body: "選択肢1"), ApiChoice(id: "ch2", body: "選択肢2")],
+                        coveredStepIds: ["s1", "s2"]
+                    ),
+                ],
+                latestAttempts: [AttemptSummary(questionId: "q1", isCorrect: false)]
+            )
+        )
+        #expect(StubURLProtocol.lastRequest?.httpMethod == "GET")
+        #expect(StubURLProtocol.lastRequest?.url?.path() == "/api/courses/c1/quiz")
+    }
+
+    @Test func quiz_見つからなければHTTPエラーにする() async {
+        StubURLProtocol.respond(status: 404, body: Data(#"{"error":"not_found","message":"講義が見つかりません"}"#.utf8))
+
+        await #expect(throws: APIClientError.http(status: 404, body: ApiError(error: "not_found", message: "講義が見つかりません"))) {
+            try await client.quiz(courseId: "c1")
+        }
+    }
+
+    // MARK: - attempt
+
+    @Test func attempt_選択肢を送って結果を読み取る() async throws {
+        StubURLProtocol.respond(status: 200, body: Data(attemptJSON.utf8))
+
+        let result = try await client.attempt(questionId: "q1", selectedChoiceId: "ch2")
+
+        #expect(
+            result == AttemptResult(
+                questionId: "q1",
+                selectedChoiceId: "ch2",
+                correctChoiceId: "ch1",
+                isCorrect: false,
+                explanation: "解説"
+            )
+        )
+        let request = try #require(StubURLProtocol.lastRequest)
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.path() == "/api/questions/q1/attempts")
+        #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        let body = try JSONSerialization.jsonObject(with: try #require(StubURLProtocol.lastRequestBody)) as? [String: String]
+        #expect(body == ["selectedChoiceId": "ch2"])
+    }
+
+    @Test func attempt_不正な選択肢ならHTTPエラーにする() async {
+        StubURLProtocol.respond(status: 400, body: Data(#"{"error":"invalid_choice","message":"選択肢がこの設問のものではありません"}"#.utf8))
+
+        await #expect(throws: APIClientError.http(status: 400, body: ApiError(error: "invalid_choice", message: "選択肢がこの設問のものではありません"))) {
+            try await client.attempt(questionId: "q1", selectedChoiceId: "other")
+        }
+    }
+
     // MARK: - 待ち時間（§5）
 
     @Test func すべてのAPIが15秒で時間切れになる() async throws {
@@ -369,6 +441,14 @@ struct APIClientLiveTests {
         )
         _ = try await client.usage()
         #expect(StubURLProtocol.lastRequest?.timeoutInterval == 15)
+
+        StubURLProtocol.respond(status: 200, body: Data(#"{"questions":[],"latestAttempts":[]}"#.utf8))
+        _ = try await client.quiz(courseId: "c1")
+        #expect(StubURLProtocol.lastRequest?.timeoutInterval == 15)
+
+        StubURLProtocol.respond(status: 200, body: Data(attemptJSON.utf8))
+        _ = try await client.attempt(questionId: "q1", selectedChoiceId: "ch2")
+        #expect(StubURLProtocol.lastRequest?.timeoutInterval == 15)
     }
 
     @discardableResult
@@ -393,6 +473,8 @@ struct APIClientLiveTests {
 
 private let doneLine = #"{"done":{"id":"m1","stepId":"s1","role":"assistant","content":"本文","createdAt":1760000060000,"interrupted":false}}"#
 private let doneMessage = ApiMessage(id: "m1", stepId: "s1", role: .assistant, content: "本文", interrupted: false)
+
+private let attemptJSON = #"{"questionId":"q1","selectedChoiceId":"ch2","correctChoiceId":"ch1","isCorrect":false,"explanation":"解説","answeredAt":1760000060000}"#
 
 private let courseJSON = """
 {

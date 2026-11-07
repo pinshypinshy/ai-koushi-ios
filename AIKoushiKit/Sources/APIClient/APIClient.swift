@@ -30,6 +30,8 @@ public struct APIClient: Sendable {
     }
     public var completeStep: @Sendable (_ courseId: String, _ stepId: String) async throws -> CourseDetail
     public var usage: @Sendable () async throws -> UsageSummary
+    public var quiz: @Sendable (_ courseId: String) async throws -> QuizResponse
+    public var attempt: @Sendable (_ questionId: String, _ selectedChoiceId: String) async throws -> AttemptResult
 }
 
 extension APIClient: TestDependencyKey {

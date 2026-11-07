@@ -24,12 +24,13 @@
 機能はローカルパッケージ `AIKoushiKit` のモジュールに分け、アプリ本体（`AIKoushi`）は組み立てるだけにしている。
 
 ```
-AIKoushi/        … アプリ本体（Xcode プロジェクト）
+AIKoushi/        … アプリ本体と確認用のアプリ（Xcode プロジェクト）
 AIKoushiKit/     … ローカルパッケージ
   Models         … API の型（Web版の shared/api.ts に対応）
   AppConfig      … アプリ全体で共有する設定値（本番の URL など）
   APIClient      … API クライアントのインターフェース
   APIClientLive  … URLSession による実装
+  APIClientFake  … 確認用の偽の API
   SharedUI       … 複数の画面で使う View 部品
   *Feature       … 画面ごとの Feature（Login・Sidebar・Course・App）
 ```

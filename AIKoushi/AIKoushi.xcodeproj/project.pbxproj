@@ -9,16 +9,24 @@
 /* Begin PBXBuildFile section */
 		B6E72D01307DE19D0035E3B2 /* APIClientLive in Frameworks */ = {isa = PBXBuildFile; productRef = B6E72D00307DE19D0035E3B2 /* APIClientLive */; };
 		B6E72D03307DE19D0035E3B2 /* AppFeature in Frameworks */ = {isa = PBXBuildFile; productRef = B6E72D02307DE19D0035E3B2 /* AppFeature */; };
+		B6E72E0B307DE19D0035E3B2 /* APIClientFake in Frameworks */ = {isa = PBXBuildFile; productRef = B6E72E0A307DE19D0035E3B2 /* APIClientFake */; };
+		B6E72E0D307DE19D0035E3B2 /* AppFeature in Frameworks */ = {isa = PBXBuildFile; productRef = B6E72E0C307DE19D0035E3B2 /* AppFeature */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		B6E72C66307DDEC10035E3B2 /* AIKoushi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIKoushi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6E72E02307DE19D0035E3B2 /* AIKoushiFake.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIKoushiFake.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B6E72C68307DDEC10035E3B2 /* AIKoushi */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = AIKoushi;
+			sourceTree = "<group>";
+		};
+		B6E72E03307DE19D0035E3B2 /* AIKoushiFake */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AIKoushiFake;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +41,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B6E72E05307DE19D0035E3B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B6E72E0B307DE19D0035E3B2 /* APIClientFake in Frameworks */,
+				B6E72E0D307DE19D0035E3B2 /* AppFeature in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -40,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				B6E72C68307DDEC10035E3B2 /* AIKoushi */,
+				B6E72E03307DE19D0035E3B2 /* AIKoushiFake */,
 				B6E72C67307DDEC10035E3B2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				B6E72C66307DDEC10035E3B2 /* AIKoushi.app */,
+				B6E72E02307DE19D0035E3B2 /* AIKoushiFake.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -79,6 +98,30 @@
 			productReference = B6E72C66307DDEC10035E3B2 /* AIKoushi.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B6E72E01307DE19D0035E3B2 /* AIKoushiFake */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B6E72E09307DE19D0035E3B2 /* Build configuration list for PBXNativeTarget "AIKoushiFake" */;
+			buildPhases = (
+				B6E72E04307DE19D0035E3B2 /* Sources */,
+				B6E72E05307DE19D0035E3B2 /* Frameworks */,
+				B6E72E06307DE19D0035E3B2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B6E72E03307DE19D0035E3B2 /* AIKoushiFake */,
+			);
+			name = AIKoushiFake;
+			packageProductDependencies = (
+				B6E72E0A307DE19D0035E3B2 /* APIClientFake */,
+				B6E72E0C307DE19D0035E3B2 /* AppFeature */,
+			);
+			productName = AIKoushiFake;
+			productReference = B6E72E02307DE19D0035E3B2 /* AIKoushiFake.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -90,6 +133,9 @@
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					B6E72C65307DDEC10035E3B2 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					B6E72E01307DE19D0035E3B2 = {
 						CreatedOnToolsVersion = 26.6;
 					};
 				};
@@ -112,6 +158,7 @@
 			projectRoot = "";
 			targets = (
 				B6E72C65307DDEC10035E3B2 /* AIKoushi */,
+				B6E72E01307DE19D0035E3B2 /* AIKoushiFake */,
 			);
 		};
 /* End PBXProject section */
@@ -124,10 +171,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B6E72E06307DE19D0035E3B2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		B6E72C62307DDEC10035E3B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B6E72E04307DE19D0035E3B2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -334,6 +395,80 @@
 			};
 			name = Release;
 		};
+		B6E72E07307DE19D0035E3B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8M8WZFVBS9;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "AI講師 Fake";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yuki-hiraishi.AIKoushi.Fake";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B6E72E08307DE19D0035E3B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8M8WZFVBS9;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "AI講師 Fake";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yuki-hiraishi.AIKoushi.Fake";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -355,6 +490,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		B6E72E09307DE19D0035E3B2 /* Build configuration list for PBXNativeTarget "AIKoushiFake" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B6E72E07307DE19D0035E3B2 /* Debug */,
+				B6E72E08307DE19D0035E3B2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -370,6 +514,14 @@
 			productName = APIClientLive;
 		};
 		B6E72D02307DE19D0035E3B2 /* AppFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppFeature;
+		};
+		B6E72E0A307DE19D0035E3B2 /* APIClientFake */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = APIClientFake;
+		};
+		B6E72E0C307DE19D0035E3B2 /* AppFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppFeature;
 		};

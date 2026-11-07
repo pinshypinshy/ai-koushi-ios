@@ -2,9 +2,6 @@
 
 import PackageDescription
 
-// モジュールの分け方と依存の向きは ADR 0002。
-// Feature と Feature のテストに APIClientLive を依存させない（本物の API を呼べない構造を保つため）。
-
 let tca: Target.Dependency = .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
 
 let package = Package(
@@ -13,6 +10,7 @@ let package = Package(
     products: [
         .library(name: "AppFeature", targets: ["AppFeature"]),
         .library(name: "APIClientLive", targets: ["APIClientLive"]),
+        .library(name: "APIClientFake", targets: ["APIClientFake"]),
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.26.2"),
@@ -22,6 +20,7 @@ let package = Package(
         .target(name: "AppConfig"),
         .target(name: "APIClient", dependencies: ["Models", tca]),
         .target(name: "APIClientLive", dependencies: ["APIClient", "AppConfig", "Models", tca]),
+        .target(name: "APIClientFake", dependencies: ["APIClient", "Models"]),
         .target(name: "SharedUI", dependencies: ["Models"]),
         .target(name: "ConversationWebView", dependencies: ["SharedUI"], resources: [.copy("Resources/WebRenderer")]),
         .target(name: "LoginFeature", dependencies: ["APIClient", "Models", "SharedUI", tca], resources: [.process("Resources")]),

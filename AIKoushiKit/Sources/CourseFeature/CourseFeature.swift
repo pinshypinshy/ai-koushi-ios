@@ -14,16 +14,16 @@ import Models
 public struct CourseFeature {
     @ObservableState
     public struct State: Equatable {
-        var lectures: IdentifiedArrayOf<LectureFeature.State>
+        var items: IdentifiedArrayOf<CourseItemFeature.State>
         public internal(set) var selectedCourseID: CourseSummary.ID?
 
-        var selectedLecture: LectureFeature.State? {
-            selectedCourseID.flatMap { lectures[id: $0] }
+        var selectedItem: CourseItemFeature.State? {
+            selectedCourseID.flatMap { items[id: $0] }
         }
 
         /// `selected` は、サーバーが返す一覧の先頭の講義の詳細
         public init(courses: [CourseSummary], selected: CourseDetail?) {
-            self.lectures = IdentifiedArray(uniqueElements: courses.prefix(1).map { LectureFeature.State(summary: $0, detail: selected) })
+            self.items = IdentifiedArray(uniqueElements: courses.prefix(1).map { CourseItemFeature.State(summary: $0, detail: selected) })
             self.selectedCourseID = courses.first?.id
         }
     }
@@ -33,7 +33,7 @@ public struct CourseFeature {
         case menuButtonTapped
         case openWebButtonTapped
         case coursesChanged(courses: [CourseSummary], selectedCourseID: CourseSummary.ID?)
-        case lectures(IdentifiedActionOf<LectureFeature>)
+        case items(IdentifiedActionOf<CourseItemFeature>)
         case delegate(Delegate)
 
         @CasePathable
@@ -53,10 +53,10 @@ public struct CourseFeature {
         Reduce { state, action in
             switch action {
             case .task:
-                guard let lecture = state.selectedLecture else { return .none }
+                guard let item = state.selectedItem else { return .none }
                 // 起動直後は bootstrap の selected を使い、取り直さない（§4.6）
-                let action: LectureFeature.Action = lecture.detail == nil ? .fetchRequested : .startLectureIfNeeded
-                return .send(.lectures(.element(id: lecture.id, action: action)))
+                let action: LectureFeature.Action = item.lecture.detail == nil ? .fetchRequested : .startLectureIfNeeded
+                return .send(.items(.element(id: item.id, action: .lecture(action))))
 
             case .menuButtonTapped:
                 return .send(.delegate(.sidebarRequested))
@@ -69,7 +69,7 @@ public struct CourseFeature {
             case let .coursesChanged(courses, selectedCourseID):
                 return updateCourses(&state, courses: courses, selectedCourseID: selectedCourseID)
 
-            case let .lectures(.element(id: _, action: .delegate(delegate))):
+            case let .items(.element(id: _, action: .lecture(.delegate(delegate)))):
                 switch delegate {
                 case .sessionExpired:
                     return .send(.delegate(.sessionExpired))
@@ -79,12 +79,12 @@ public struct CourseFeature {
                     return .send(.delegate(.courseUpdated(course)))
                 }
 
-            case .lectures, .delegate:
+            case .items, .delegate:
                 return .none
             }
         }
-        .forEach(\.lectures, action: \.lectures) {
-            LectureFeature()
+        .forEach(\.items, action: \.items) {
+            CourseItemFeature()
         }
     }
 
@@ -95,17 +95,17 @@ public struct CourseFeature {
     ) -> Effect<Action> {
         let isSelectionChanged = selectedCourseID != state.selectedCourseID
         state.selectedCourseID = selectedCourseID
-        state.lectures.removeAll { lecture in !courses.contains { $0.id == lecture.id } }
+        state.items.removeAll { item in !courses.contains { $0.id == item.id } }
         for course in courses {
-            state.lectures[id: course.id]?.summary = course
+            state.items[id: course.id]?.lecture.summary = course
         }
 
         guard let selectedCourseID, let selected = courses.first(where: { $0.id == selectedCourseID }) else { return .none }
-        if state.lectures[id: selectedCourseID] == nil {
-            state.lectures.append(LectureFeature.State(summary: selected))
+        if state.items[id: selectedCourseID] == nil {
+            state.items.append(CourseItemFeature.State(summary: selected))
         }
-        guard isSelectionChanged || state.lectures[id: selectedCourseID]?.isStatusOutdated == true else { return .none }
+        guard isSelectionChanged || state.items[id: selectedCourseID]?.lecture.isStatusOutdated == true else { return .none }
         // forEach を通さないと、キャンセルの ID が講義ごとに分かれない（ADR 0004）
-        return .send(.lectures(.element(id: selectedCourseID, action: .fetchRequested)))
+        return .send(.items(.element(id: selectedCourseID, action: .lecture(.fetchRequested))))
     }
 }

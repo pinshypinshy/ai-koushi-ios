@@ -196,7 +196,7 @@ struct AppFeatureTests {
         withDependencies: (inout DependencyValues) -> Void
     ) -> TestStoreOf<AppFeature> {
         var main = MainFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))
-        main.course.lectures = [
+        main.course.items = [
             .init(summary: .mock("c1"), detail: CourseDetail(summary: .mock("c1"), currentStepId: "s1", steps: [], messages: [])),
             .init(summary: .mock("c2"), detail: CourseDetail(summary: .mock("c2"), currentStepId: "s1", steps: [], messages: [])),
         ]
@@ -209,8 +209,8 @@ struct AppFeatureTests {
     }
 
     private func startStreaming(_ store: TestStoreOf<AppFeature>, _ id: String) async {
-        await store.send(.main(.course(.lectures(.element(id: id, action: .startLectureIfNeeded))))) {
-            $0.modify(\.main) { $0.course.lectures[id: id]?.activity = .streaming(text: "", replacingMessageID: nil) }
+        await store.send(.main(.course(.items(.element(id: id, action: .lecture(.startLectureIfNeeded)))))) {
+            $0.modify(\.main) { $0.course.items[id: id]?.lecture.activity = .streaming(text: "", replacingMessageID: nil) }
         }
     }
 }

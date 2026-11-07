@@ -29,8 +29,8 @@ public struct CourseView: View {
         NavigationStack {
             Group {
                 if let id = store.selectedCourseID,
-                   let lectureStore = store.scope(state: \.lectures[id: id], action: \.lectures[id: id]) {
-                    LectureView(store: lectureStore, isSidebarOpen: isSidebarOpen, onScrollBoxTouch: onScrollBoxTouch)
+                   let itemStore = store.scope(state: \.items[id: id], action: \.items[id: id]) {
+                    LectureView(store: itemStore.scope(state: \.lecture, action: \.lecture), isSidebarOpen: isSidebarOpen, onScrollBoxTouch: onScrollBoxTouch)
                 } else {
                     ContentUnavailableView {
                         Text("まだ講義がありません")
@@ -44,7 +44,7 @@ public struct CourseView: View {
                     }
                 }
             }
-            .navigationTitle(store.selectedLecture?.summary.title ?? "")
+            .navigationTitle(store.selectedItem?.lecture.summary.title ?? "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

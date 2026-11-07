@@ -46,32 +46,32 @@ struct MainFeatureTests {
     @Test func course_更新された講義で行を置き換えても再取得しない() async {
         let updated = CourseSummary.mock("c1", completedSteps: 3)
         var initial = MainFeature.State(bootstrap: .mock(courses: [.mock("c1")]))
-        initial.course.lectures[id: "c1"]?.detail = CourseDetail(summary: .mock("c1"), currentStepId: nil, steps: [], messages: [])
+        initial.course.items[id: "c1"]?.lecture.detail = CourseDetail(summary: .mock("c1"), currentStepId: nil, steps: [], messages: [])
         let store = TestStore(initialState: initial) {
             MainFeature()
         }
 
         await store.send(.course(.delegate(.courseUpdated(updated))))
         await store.receive(\.sidebar.courseUpdated) { $0.sidebar.courses = [updated] }
-        await store.receive(\.course.coursesChanged) { $0.course.lectures[id: "c1"]?.summary = updated }
+        await store.receive(\.course.coursesChanged) { $0.course.items[id: "c1"]?.lecture.summary = updated }
     }
 
     @Test func course_選択していない講義の401でもセッション切れにする() async {
         var initial = MainFeature.State(bootstrap: .mock(courses: [.mock("c1"), .mock("c2")]))
-        initial.course.lectures.append(.init(summary: .mock("c2")))
+        initial.course.items.append(.init(summary: .mock("c2")))
         let store = TestStore(initialState: initial) {
             MainFeature()
         } withDependencies: {
             $0.apiClient.course = { _ in throw APIClientError.http(status: 401, body: nil) }
         }
 
-        await store.send(.course(.lectures(.element(id: "c2", action: .fetchRequested)))) {
-            $0.course.lectures[id: "c2"]?.activity = .fetching
+        await store.send(.course(.items(.element(id: "c2", action: .lecture(.fetchRequested))))) {
+            $0.course.items[id: "c2"]?.lecture.activity = .fetching
         }
-        await store.receive(\.course.lectures[id: "c2"].fetchFailed) {
-            $0.course.lectures[id: "c2"]?.activity = .idle
+        await store.receive(\.course.items[id: "c2"].lecture.fetchFailed) {
+            $0.course.items[id: "c2"]?.lecture.activity = .idle
         }
-        await store.receive(\.course.lectures[id: "c2"].delegate.sessionExpired)
+        await store.receive(\.course.items[id: "c2"].lecture.delegate.sessionExpired)
         await store.receive(\.course.delegate.sessionExpired)
         await store.receive(\.delegate.sessionExpired)
     }
@@ -133,7 +133,7 @@ struct MainFeatureTests {
 
         await store.send(.sidebar(.refreshPulled))
         await store.receive(\.course.coursesChanged) {
-            $0.course.lectures[id: "c1"]?.summary = updated
+            $0.course.items[id: "c1"]?.lecture.summary = updated
         }
     }
 
@@ -148,7 +148,7 @@ struct MainFeatureTests {
         await store.send(.sidebar(.refreshPulled))
         await store.receive(\.course.coursesChanged) {
             $0.course.selectedCourseID = nil
-            $0.course.lectures = []
+            $0.course.items = []
         }
     }
 }

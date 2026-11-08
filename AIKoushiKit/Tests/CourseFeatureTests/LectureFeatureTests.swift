@@ -7,7 +7,7 @@
 
 import APIClient
 import ComposableArchitecture
-import ConversationWebView
+import MarkdownWebView
 @testable import CourseFeature
 import Foundation
 import Models

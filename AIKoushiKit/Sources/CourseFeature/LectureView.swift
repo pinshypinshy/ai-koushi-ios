@@ -6,7 +6,7 @@
 //
 
 import ComposableArchitecture
-import ConversationWebView
+import MarkdownWebView
 import Models
 import SharedUI
 import SwiftUI
@@ -76,7 +76,7 @@ private struct LectureConversation: View {
 
     var body: some View {
         if let content = store.conversationContent {
-            ConversationView(
+            ConversationWebView(
                 content: content,
                 onLinkTap: { store.send(.linkTapped($0)) },
                 onScrollBoxTouch: onScrollBoxTouch

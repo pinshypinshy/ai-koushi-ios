@@ -5,7 +5,7 @@
 //  Created by 平石悠生 on 2026/10/31.
 //
 
-@testable import ConversationWebView
+@testable import MarkdownWebView
 import Foundation
 import Testing
 

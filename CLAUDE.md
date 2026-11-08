@@ -73,19 +73,19 @@ AIKoushiKit/                 … ローカルパッケージ
 │   ├── APIClientLive/       … URLSession による実装。アプリ本体と自身のテストだけが import する
 │   ├── APIClientFake/       … 偽の API と架空のデータ。確認用のアプリだけが import する
 │   ├── SharedUI/            … 複数の Feature で使う View 部品
-│   ├── ConversationWebView/ … Markdown と数式を WKWebView で表示する View（ADR 0003）
+│   ├── MarkdownWebView/     … Markdown と数式を WKWebView で表示する View。共通の器とページに分ける（ADR 0003・0009）
 │   │   └── Resources/       … WebRenderer/ をビルドした成果物。手で編集しない
 │   ├── <Name>Feature/       … 画面ごとの Feature（Reducer と View を同じモジュールに置く）
 │   └── AppFeature/          … ルート。起動・セッション切れ・画面の切り替え
 └── Tests/
-    ├── ConversationWebViewTests/ … 送る内容の計算と、シミュレータ上での描画のテスト
+    ├── MarkdownWebViewTests/ … 送る内容の計算と、シミュレータ上での描画のテスト
     └── <Name>FeatureTests/  … Feature ごとのテスト
 WebRenderer/                 … WebView の中で動く TypeScript のソースとビルドの設定
 ```
 
 - 依存の向き：`Models ← APIClient ← 各 Feature ← AppFeature ← アプリ本体 → APIClientLive`
 - 確認用のアプリは、アプリ本体と同じ位置で `APIClientLive` の代わりに `APIClientFake` に依存する（`AppFeature ← 確認用のアプリ → APIClientFake`）
-- `ConversationWebView` は `SharedUI` だけに依存し、`Models` と TCA には依存しない。使う Feature
+- `MarkdownWebView` は `SharedUI` だけに依存し、`Models` と TCA には依存しない。使う Feature
   （`CourseFeature`、段階3の確認テスト）が、API の型から表示する内容へ変換して渡す
 - Feature と Feature のテストは `APIClientLive` に依存させない（本物の API を呼べない構造にするため）
 - `APIClientLive` のテストは、`URLProtocol` で応答を差し替えて書く（本物の API は呼ばない）
@@ -127,7 +127,7 @@ WebRenderer/                 … WebView の中で動く TypeScript のソース
 | ビルド（確認用のアプリ） | `xcodebuild build -project AIKoushi/AIKoushi.xcodeproj -scheme AIKoushiFake -destination 'platform=iOS Simulator,name=iPhone 17'` |
 | テスト（パッケージ） | `cd AIKoushiKit && xcodebuild test -scheme AIKoushiKit-Package -destination 'platform=iOS Simulator,name=iPhone 17'` |
 | WebRenderer のビルド（型の検査を含む） | `cd WebRenderer && npm ci && npm run build` |
-| 成果物がソースと一致するかの確認 | WebRenderer をビルドしたあとに `git diff --exit-code -- AIKoushiKit/Sources/ConversationWebView/Resources` |
+| 成果物がソースと一致するかの確認 | WebRenderer をビルドしたあとに `git diff --exit-code -- AIKoushiKit/Sources/MarkdownWebView/Resources` |
 
 - テストはすべてパッケージ側にある。アプリ本体にテストのターゲットは無い
 - Xcode のビルドに Node.js は要らない（成果物をコミットしているため）。`WebRenderer/` を変えたら

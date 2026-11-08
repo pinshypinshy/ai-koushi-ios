@@ -3,7 +3,7 @@ import { build } from 'esbuild'
 import { copyFile, mkdir, rm } from 'node:fs/promises'
 
 // バンドルの直下に Resources という名前のフォルダがあると、codesign がバンドルの形式を認識できずに失敗するため、1段深くする
-const outdir = '../AIKoushiKit/Sources/ConversationWebView/Resources/WebRenderer'
+const outdir = '../AIKoushiKit/Sources/MarkdownWebView/Resources/WebRenderer'
 
 await rm(outdir, { recursive: true, force: true })
 await mkdir(outdir, { recursive: true })

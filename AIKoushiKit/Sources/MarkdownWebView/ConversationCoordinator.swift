@@ -128,7 +128,7 @@ public final class ConversationCoordinator: NSObject {
         Bundle.module.url(forResource: "index", withExtension: "html", subdirectory: "WebRenderer")
     }
 
-    nonisolated private static let logger = Logger(subsystem: "AIKoushiKit", category: "ConversationWebView")
+    nonisolated private static let logger = Logger(subsystem: "AIKoushiKit", category: "MarkdownWebView")
 
     /// コードの誤り（script・command）は開発中に止めて気づかせる。数式の誤りは内容の問題なので記録だけにする（ADR 0003）
     nonisolated private static func reportError(_ kind: WebMessage.ErrorKind, _ message: String) {

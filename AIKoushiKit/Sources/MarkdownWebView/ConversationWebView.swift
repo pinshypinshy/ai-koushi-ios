@@ -1,5 +1,5 @@
 //
-//  ConversationView.swift
+//  ConversationWebView.swift
 //  AIKoushiKit
 //
 //  Created by 平石悠生 on 2026/10/31.
@@ -8,7 +8,7 @@
 import SwiftUI
 import WebKit
 
-public struct ConversationView: UIViewRepresentable {
+public struct ConversationWebView: UIViewRepresentable {
     let content: ConversationContent
     let onLinkTap: (URL) -> Void
     let onScrollBoxTouch: (Bool) -> Void

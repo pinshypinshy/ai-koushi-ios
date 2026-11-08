@@ -561,6 +561,7 @@ TestStore で次を確かめる。API は Dependency を差し替え、本物を
 | 講義ごとに受講の状態を持ち、講義を切り替えても受信を続ける | 受信をやめても、サーバーが生成を止める保証が無く、同じ応答を二重に生成しうるため | `Docs/ADR/0004-keep-per-course-lecture-state.md` |
 | 確認テストの1問分を1つの WKWebView で表示する | 数式を含む選択肢を、会話と同じ処理で描くため | `Docs/ADR/0007-render-quiz-with-webview.md` |
 | 受講と確認テストの状態を、講義1つ分の親にまとめる | 作成と削除を同じ単位で揃えるため | `Docs/ADR/0008-group-lecture-and-quiz-per-course.md` |
+| Markdown と数式を表示する WebView を、共通の器とページに分ける | 今後の機能の拡張で、表示する画面が増えても同じ形で足せるようにするため | `Docs/ADR/0009-split-markdown-webview-into-core-and-pages.md` |
 
 ---
 

@@ -8,8 +8,14 @@ const outdir = '../AIKoushiKit/Sources/MarkdownWebView/Resources/WebRenderer'
 await rm(outdir, { recursive: true, force: true })
 await mkdir(outdir, { recursive: true })
 
+// ページごとに、<名前>.html・<名前>.js・<名前>.css を書き出す（ADR 0009）。名前は Swift の PageDefinition.name と同じにする
+const pages = ['conversation']
+
 await build({
-  entryPoints: { conversation: 'src/main.ts', 'conversation-style': 'src/conversation.css' },
+  entryPoints: pages.flatMap((page) => [
+    { in: `src/${page}/main.ts`, out: page },
+    { in: `src/${page}/style.css`, out: page },
+  ]),
   outdir,
   bundle: true,
   minify: true,
@@ -20,4 +26,6 @@ await build({
   logLevel: 'warning',
 })
 
-await copyFile('src/index.html', `${outdir}/index.html`)
+for (const page of pages) {
+  await copyFile(`src/${page}/${page}.html`, `${outdir}/${page}.html`)
+}

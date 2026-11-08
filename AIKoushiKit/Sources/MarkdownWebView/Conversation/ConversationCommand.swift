@@ -5,22 +5,21 @@
 //  Created by 平石悠生 on 2026/10/31.
 //
 
-/// JSON の形は WebRenderer/src/commands.ts の Command と対になる
+/// JSON の形は WebRenderer/src/conversation/commands.ts の ConversationCommand と対になる
 enum ConversationCommand: Equatable {
-    case configure(ConversationConfiguration)
-    case reset(items: [ConversationItem], streaming: String?, scrollToEnd: Bool)
+    case reset(items: [ConversationItem], streaming: String?, waitingText: String, scrollToEnd: Bool)
     case append(items: [ConversationItem], scrollToEnd: Bool)
     case setStreaming(String?)
 
     static func commands(from old: ConversationContent?, to new: ConversationContent) -> [Self] {
         guard let old, old.id == new.id else {
-            return [.reset(items: new.items, streaming: new.streaming, scrollToEnd: true)]
+            return [.reset(items: new.items, streaming: new.streaming, waitingText: new.waitingText, scrollToEnd: true)]
         }
         // 利用者が発言を送ったときは末尾を表示する（§3.2）。
         // ID で比べると、読み直しで手元の ID がサーバーの ID に変わっただけのときも移動してしまう
         let sentMessage = userMessageCount(in: new.items) > userMessageCount(in: old.items)
-        guard new.items.starts(with: old.items) else {
-            return [.reset(items: new.items, streaming: new.streaming, scrollToEnd: sentMessage)]
+        guard new.waitingText == old.waitingText, new.items.starts(with: old.items) else {
+            return [.reset(items: new.items, streaming: new.streaming, waitingText: new.waitingText, scrollToEnd: sentMessage)]
         }
 
         var commands: [Self] = []
@@ -41,20 +40,18 @@ enum ConversationCommand: Equatable {
 
 extension ConversationCommand: Encodable {
     private enum CodingKeys: String, CodingKey {
-        case type, configuration, items, streaming, scrollToEnd, text
+        case type, items, streaming, waitingText, scrollToEnd, text
     }
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
-        case let .configure(configuration):
-            try container.encode("configure", forKey: .type)
-            try container.encode(configuration, forKey: .configuration)
-        case let .reset(items, streaming, scrollToEnd):
+        case let .reset(items, streaming, waitingText, scrollToEnd):
             try container.encode("reset", forKey: .type)
             try container.encode(items, forKey: .items)
             // nil を省かず null として送る（JavaScript 側は null だけを受け付ける）
             try container.encode(streaming, forKey: .streaming)
+            try container.encode(waitingText, forKey: .waitingText)
             try container.encode(scrollToEnd, forKey: .scrollToEnd)
         case let .append(items, scrollToEnd):
             try container.encode("append", forKey: .type)

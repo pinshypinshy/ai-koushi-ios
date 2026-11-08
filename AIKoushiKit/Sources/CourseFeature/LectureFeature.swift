@@ -475,7 +475,7 @@ extension LectureFeature.State {
         if streamingText != nil {
             appendDividerIfNeeded(stepID: conversationStepID)
         }
-        return ConversationContent(id: id, items: items, streaming: streamingText)
+        return ConversationContent(id: id, items: items, streaming: streamingText, waitingText: "応答を待っています")
     }
 
     private var streamingText: String? {

@@ -1,5 +1,5 @@
 //
-//  ConversationConfiguration.swift
+//  Theme.swift
 //  AIKoushiKit
 //
 //  Created by 平石悠生 on 2026/10/31.
@@ -9,8 +9,8 @@ import SharedUI
 import SwiftUI
 import UIKit
 
-struct ConversationConfiguration: Equatable, Encodable {
-    // 名前は WebRenderer/src/commands.ts の colorNames と対になる
+struct Theme: Equatable, Encodable {
+    // 名前は WebRenderer/src/core/theme.ts の colorNames と対になる
     struct Colors: Equatable, Encodable {
         var text: String
         var secondaryText: String
@@ -27,10 +27,9 @@ struct ConversationConfiguration: Equatable, Encodable {
 
     var colors: Colors
     var fontSize: Double
-    var waitingText: String
 }
 
-extension ConversationConfiguration {
+extension Theme {
     init(environment: EnvironmentValues) {
         func css(_ color: Color) -> String {
             let resolved = color.resolve(in: environment)
@@ -51,8 +50,7 @@ extension ConversationConfiguration {
                 codeBlockText: css(AppColor.codeBlockText),
                 tableHeaderBackground: css(AppColor.tableHeaderBackground)
             ),
-            fontSize: UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits).pointSize,
-            waitingText: "応答を待っています"
+            fontSize: UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits).pointSize
         )
     }
 }

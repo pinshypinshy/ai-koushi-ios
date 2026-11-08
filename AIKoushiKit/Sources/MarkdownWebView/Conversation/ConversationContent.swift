@@ -11,11 +11,14 @@ public struct ConversationContent: Equatable, Sendable {
     public var items: [ConversationItem]
     /// nil は受信していない、空文字はまだ1文字も届いていない（§3.2）
     public var streaming: String?
+    /// まだ1文字も届いていないときに表示する文字
+    public var waitingText: String
 
-    public init(id: String, items: [ConversationItem], streaming: String?) {
+    public init(id: String, items: [ConversationItem], streaming: String?, waitingText: String) {
         self.id = id
         self.items = items
         self.streaming = streaming
+        self.waitingText = waitingText
     }
 }
 
@@ -26,7 +29,7 @@ public enum ConversationItem: Equatable, Sendable {
     case notice(id: String, text: String)
 }
 
-// JSON の形は WebRenderer/src/commands.ts の ConversationItem と対になる
+// JSON の形は WebRenderer/src/conversation/commands.ts の ConversationItem と対になる
 extension ConversationItem: Encodable {
     private enum CodingKeys: String, CodingKey {
         case type, id, label, markdown, text

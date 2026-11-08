@@ -1,5 +1,5 @@
 //
-//  WebMessage.swift
+//  CommonMessage.swift
 //  AIKoushiKit
 //
 //  Created by 平石悠生 on 2026/10/31.
@@ -7,10 +7,9 @@
 
 import Foundation
 
-/// JSON の形は WebRenderer/src/bridge.ts の WebMessage と対になる
-enum WebMessage: Equatable, Decodable {
+/// どのページからも届く知らせ。JSON の形は WebRenderer/src/core/bridge.ts の CommonMessage と対になる
+enum CommonMessage: Equatable, Decodable {
     case ready
-    case linkTapped(String)
     case scrollBoxTouched(canScrollBack: Bool)
     case error(kind: ErrorKind, message: String)
 
@@ -20,8 +19,10 @@ enum WebMessage: Equatable, Decodable {
         case math
     }
 
+    static let types: Set<String> = ["ready", "scrollBoxTouched", "error"]
+
     private enum CodingKeys: String, CodingKey {
-        case type, url, canScrollBack, kind, message
+        case type, canScrollBack, kind, message
     }
 
     init(from decoder: any Decoder) throws {
@@ -30,8 +31,6 @@ enum WebMessage: Equatable, Decodable {
         switch type {
         case "ready":
             self = .ready
-        case "linkTapped":
-            self = .linkTapped(try container.decode(String.self, forKey: .url))
         case "scrollBoxTouched":
             self = .scrollBoxTouched(canScrollBack: try container.decode(Bool.self, forKey: .canScrollBack))
         case "error":
@@ -43,11 +42,25 @@ enum WebMessage: Equatable, Decodable {
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "知らない種類：\(type)")
         }
     }
+}
 
-    static func browserURL(_ string: String) -> URL? {
-        guard let url = URL(string: string), let scheme = url.scheme?.lowercased(),
-              scheme == "http" || scheme == "https"
-        else { return nil }
-        return url
+/// 届いた知らせを、共通の知らせとページ固有の知らせに振り分ける
+enum IncomingMessage<PageMessage: Decodable & Equatable>: Equatable {
+    case common(CommonMessage)
+    case page(PageMessage)
+
+    private struct TypeOnly: Decodable {
+        let type: String
+    }
+
+    /// ページ固有の知らせの型が知らない種類なら、DecodingError を投げる
+    init(json data: Data) throws {
+        let decoder = JSONDecoder()
+        let type = try decoder.decode(TypeOnly.self, from: data).type
+        if CommonMessage.types.contains(type) {
+            self = .common(try decoder.decode(CommonMessage.self, from: data))
+        } else {
+            self = .page(try decoder.decode(PageMessage.self, from: data))
+        }
     }
 }

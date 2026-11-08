@@ -7,9 +7,7 @@
 
 @testable import MarkdownWebView
 import Foundation
-import SwiftUI
 import Testing
-import UIKit
 import WebKit
 
 // WebView を同時に立ち上げると、どれも読み込みが待ち時間に間に合わなくなるため1つずつ実行する
@@ -17,11 +15,11 @@ import WebKit
 @Suite(.serialized, .timeLimit(.minutes(1)))
 struct ConversationRenderingTests {
     @Test func 教材の数式をすべて描画する() async throws {
-        let harness = RenderingHarness()
+        let harness = RenderingHarness<ConversationPage>()
         let material = try #require(Bundle.module.url(forResource: "formulas", withExtension: "md"))
         let markdown = try String(contentsOf: material, encoding: .utf8)
 
-        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "material", markdown: markdown)], streaming: nil))
+        harness.show(conversation([.assistant(id: "material", markdown: markdown)], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"material\"]') !== null")
 
         // 教材に含まれる数式の数
@@ -32,10 +30,10 @@ struct ConversationRenderingTests {
 
     /// 改行できない幅の文中の数式だけを、横にスクロールする枠に入れる（§3.2）
     @Test func 幅を超える文中の数式だけを枠に入れる() async throws {
-        let harness = RenderingHarness()
+        let harness = RenderingHarness<ConversationPage>()
         let entries = (1...30).map { "a_{\($0)}" }.joined(separator: " & ")
         let markdown = "短い数式 $x^2$\n\n$\\begin{pmatrix} \(entries) \\end{pmatrix}$"
-        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: markdown)], streaming: nil))
+        harness.show(conversation([.assistant(id: "a1", markdown: markdown)], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"a1\"] .katex') !== null")
 
         #expect(try await harness.evaluate("document.querySelectorAll('.katex').length") == "2")
@@ -44,8 +42,8 @@ struct ConversationRenderingTests {
     }
 
     @Test func 同梱のスタイルとフォントを読み込む() async throws {
-        let harness = RenderingHarness()
-        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: "$x^2$")], streaming: nil))
+        let harness = RenderingHarness<ConversationPage>()
+        harness.show(conversation([.assistant(id: "a1", markdown: "$x^2$")], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"a1\"] .katex') !== null")
 
         #expect(try await harness.evaluate("getComputedStyle(document.body).overflowX") == "\"hidden\"")
@@ -53,18 +51,18 @@ struct ConversationRenderingTests {
     }
 
     @Test func KaTeXが読めない数式を報告する() async throws {
-        let harness = RenderingHarness()
-        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: "$\\undefinedcommand{x}$")], streaming: nil))
+        let harness = RenderingHarness<ConversationPage>()
+        harness.show(conversation([.assistant(id: "a1", markdown: "$\\undefinedcommand{x}$")], streaming: nil))
         try await harness.waitUntil { harness.errors.contains { $0.kind == .math } }
     }
 
     @Test func 形の違う命令を報告する() async throws {
-        let harness = RenderingHarness()
-        harness.show(ConversationContent(id: "c1", items: [.divider(id: "d1", label: "ステップ 1")], streaming: nil))
+        let harness = RenderingHarness<ConversationPage>()
+        harness.show(conversation([.divider(id: "d1", label: "ステップ 1")], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"d1\"]') !== null")
 
         _ = try await harness.webView.callAsyncJavaScript(
-            "conversation.apply(json)",
+            "page.apply(json)",
             arguments: ["json": #"[{"type":"append","items":[{"type":"assistant","id":"x"}],"scrollToEnd":false}]"#],
             contentWorld: .page
         )
@@ -72,9 +70,9 @@ struct ConversationRenderingTests {
     }
 
     @Test func 生のHTMLは文字のまま表示し画像は説明を表示する() async throws {
-        let harness = RenderingHarness()
+        let harness = RenderingHarness<ConversationPage>()
         let markdown = "<b>太字</b> <script>window.injected = true</script>\n\n![猫の写真](https://example.com/cat.png)"
-        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: markdown)], streaming: nil))
+        harness.show(conversation([.assistant(id: "a1", markdown: markdown)], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"a1\"]') !== null")
 
         #expect(try await harness.evaluate("document.querySelectorAll('[data-id=\"a1\"] b, [data-id=\"a1\"] script, img').length") == "0")
@@ -85,23 +83,23 @@ struct ConversationRenderingTests {
     }
 
     @Test func 受信中の発言を確定するまで表示する() async throws {
-        let harness = RenderingHarness()
+        let harness = RenderingHarness<ConversationPage>()
         let divider = ConversationItem.divider(id: "d1", label: "ステップ 1・はじめに")
 
-        harness.show(ConversationContent(id: "c1", items: [divider], streaming: ""))
+        harness.show(conversation([divider], streaming: ""))
         try await harness.waitUntil("document.querySelector('.streaming')?.textContent === '応答を待っています'")
 
-        harness.show(ConversationContent(id: "c1", items: [divider], streaming: "途中の **本文**"))
+        harness.show(conversation([divider], streaming: "途中の **本文**"))
         try await harness.waitUntil("document.querySelector('.streaming strong')?.textContent === '本文'")
 
-        harness.show(ConversationContent(id: "c1", items: [divider, .assistant(id: "a1", markdown: "途中の **本文**")], streaming: nil))
+        harness.show(conversation([divider, .assistant(id: "a1", markdown: "途中の **本文**")], streaming: nil))
         try await harness.waitUntil("document.querySelector('.streaming') === null && document.querySelector('[data-id=\"a1\"]') !== null")
-        #expect(try await harness.evaluate("[...document.getElementById('conversation').children].map(e => e.dataset.id)") == #"["d1","a1"]"#)
+        #expect(try await harness.evaluate("[...document.getElementById('page').children].map(e => e.dataset.id)") == #"["d1","a1"]"#)
     }
 
     @Test func 注記をMarkdownとして解釈せず文字のまま表示する() async throws {
-        let harness = RenderingHarness()
-        harness.show(ConversationContent(id: "c1", items: [.notice(id: "n1", text: "**途切れました**")], streaming: nil))
+        let harness = RenderingHarness<ConversationPage>()
+        harness.show(conversation([.notice(id: "n1", text: "**途切れました**")], streaming: nil))
         try await harness.waitUntil("document.querySelector('[data-id=\"n1\"]') !== null")
 
         #expect(try await harness.evaluate("document.querySelector('[data-id=\"n1\"]').className") == #""notice""#)
@@ -110,12 +108,12 @@ struct ConversationRenderingTests {
     }
 
     @Test func 枠をまだ右へ戻せるときだけSwiftへ知らせる() async throws {
-        let harness = RenderingHarness()
+        let harness = RenderingHarness<ConversationPage>()
         var received: [Bool] = []
         harness.coordinator.onScrollBoxTouch = { received.append($0) }
         let entries = (1...30).map { "a_{\($0)}" }.joined(separator: " & ")
         let markdown = "本文\n\n$$\n\\begin{pmatrix} \(entries) \\end{pmatrix}\n$$"
-        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: markdown)], streaming: nil))
+        harness.show(conversation([.assistant(id: "a1", markdown: markdown)], streaming: nil))
         try await harness.waitUntil("document.querySelector('.katex-display') !== null")
 
         func dispatch(_ type: String, on selector: String) async throws -> Bool {
@@ -136,11 +134,16 @@ struct ConversationRenderingTests {
     }
 
     @Test func httpとhttpsのリンクだけをSwiftへ渡す() async throws {
-        let harness = RenderingHarness()
+        let harness = RenderingHarness<ConversationPage>()
         var opened: [URL] = []
-        harness.coordinator.onLinkTap = { opened.append($0) }
+        // ConversationWebView と同じく、http と https だけを URL にする
+        harness.coordinator.onMessage = { message in
+            if case let .linkTapped(string) = message, let url = BrowserURL.url(string) {
+                opened.append(url)
+            }
+        }
         let markdown = "[メール](mailto:a@example.com) と [リンク](https://example.com/page)"
-        harness.show(ConversationContent(id: "c1", items: [.assistant(id: "a1", markdown: markdown)], streaming: nil))
+        harness.show(conversation([.assistant(id: "a1", markdown: markdown)], streaming: nil))
         try await harness.waitUntil("document.querySelectorAll('[data-id=\"a1\"] a').length === 2")
 
         _ = try await harness.evaluate("(document.querySelectorAll('[data-id=\"a1\"] a').forEach(a => a.click()), true)")
@@ -150,56 +153,6 @@ struct ConversationRenderingTests {
     }
 }
 
-@MainActor
-final class RenderingHarness {
-    let coordinator = ConversationCoordinator()
-    let webView: WKWebView
-    // ウィンドウに無い WebView は既定で処理が止められるため（WKPreferences.inactiveSchedulingPolicy）、実際のアプリと同じくウィンドウに入れる
-    private let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 812))
-    private(set) var errors: [(kind: WebMessage.ErrorKind, message: String)] = []
-
-    init() {
-        webView = coordinator.makeWebView()
-        webView.frame = window.bounds
-        window.addSubview(webView)
-        window.isHidden = false
-        coordinator.onError = { [weak self] kind, message in
-            self?.errors.append((kind, message))
-        }
-    }
-
-    func show(_ content: ConversationContent) {
-        coordinator.update(content: content, configuration: ConversationConfiguration(environment: EnvironmentValues()))
-    }
-
-    /// 式の値を JSON の文字列で返す
-    func evaluate(_ expression: String) async throws -> String {
-        let result = try await webView.callAsyncJavaScript(
-            "return JSON.stringify(\(expression))",
-            arguments: [:],
-            contentWorld: .page
-        )
-        return try #require(result as? String)
-    }
-
-    // 他のビルドなどで重いときは、WebView の読み込みに10秒以上かかることがあるため長めに待つ
-    func waitUntil(_ condition: String, timeout: Duration = .seconds(30)) async throws {
-        let deadline = ContinuousClock.now + timeout
-        while ContinuousClock.now < deadline {
-            if try await evaluate("Boolean(\(condition))") == "true" { return }
-            try await Task.sleep(for: .milliseconds(50))
-        }
-        Issue.record("待っている条件が満たされなかった：\(condition)")
-        throw CancellationError()
-    }
-
-    func waitUntil(timeout: Duration = .seconds(30), _ condition: () -> Bool) async throws {
-        let deadline = ContinuousClock.now + timeout
-        while ContinuousClock.now < deadline {
-            if condition() { return }
-            try await Task.sleep(for: .milliseconds(50))
-        }
-        Issue.record("待っている条件が満たされなかった")
-        throw CancellationError()
-    }
+private func conversation(_ items: [ConversationItem], streaming: String?) -> ConversationContent {
+    ConversationContent(id: "c1", items: items, streaming: streaming, waitingText: "応答を待っています")
 }

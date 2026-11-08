@@ -770,7 +770,8 @@ struct LectureFeatureTests {
                 .divider(id: "divider-s2", label: "ステップ 2・まとめ"),
                 .assistant(id: "a2", markdown: "本文"),
             ],
-            streaming: nil
+            streaming: nil,
+            waitingText: "応答を待っています"
         ))
     }
 
@@ -784,7 +785,8 @@ struct LectureFeatureTests {
                 .assistant(id: "a1", markdown: "本文"),
                 .divider(id: "divider-s2", label: "ステップ 2・まとめ"),
             ],
-            streaming: ""
+            streaming: "",
+            waitingText: "応答を待っています"
         ))
     }
 

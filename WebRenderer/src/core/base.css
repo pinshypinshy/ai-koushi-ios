@@ -28,56 +28,6 @@ body {
   overflow-x: hidden;
 }
 
-#conversation {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25em;
-  padding: 16px;
-}
-
-.message {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.user {
-  align-self: flex-end;
-  max-width: 85%;
-  padding: 0.6em 0.95em;
-  border-radius: 18px 4px 18px 18px;
-  background: var(--color-userMessageBackground);
-  color: var(--color-userMessageText);
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-  color: var(--color-secondaryText);
-  font-size: 0.7em;
-  font-weight: 500;
-}
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--color-border);
-}
-
-.waiting {
-  color: var(--color-secondaryText);
-}
-
-/* 直前の発言についての注記だと分かるよう、#conversation の gap を詰めて発言に寄せる */
-.notice {
-  margin-top: -0.75em;
-  color: var(--color-error);
-  font-size: 0.8em;
-}
-
 /* 以下は Web版 app/src/index.css の .md と同じ規則。
    Web版の rem は本文 14px に対する比なので、Dynamic Type に追従するよう em に置き換えた */
 .md > *:first-child {
@@ -187,7 +137,7 @@ body {
   overflow-y: hidden;
   padding: 0.2em 0;
 }
-/* 画面幅を超える文中の数式を入れる枠（render.ts の wrapWideMath）。
+/* 画面幅を超える文中の数式を入れる枠（core/math.ts の wrapWideMath）。
    行列の括弧などは行の高さの外へはみ出すため、上下に余白を取って欠けないようにする */
 .md .math-scroll {
   display: block;

@@ -50,7 +50,7 @@ public struct LoginView: View {
                 .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
         }
-        .background(AppColor.loginBackground)
+        .background(AppColor.pageBackground)
     }
 
     private var header: some View {
@@ -62,12 +62,12 @@ public struct LoginView: View {
                     .accessibilityHidden(true)
                 Text("AI講師")
                     .font(.title.bold())
-                    .foregroundStyle(AppColor.loginTitle)
+                    .foregroundStyle(AppColor.titleText)
             }
             // Web版は狭い画面で読点の後に改行を入れている
             Text("参考書をアップロードすると、\nAIが講義と確認テストを作ります")
                 .font(.subheadline)
-                .foregroundStyle(AppColor.loginSubtleText)
+                .foregroundStyle(AppColor.secondaryText)
                 .multilineTextAlignment(.center)
         }
     }
@@ -81,7 +81,7 @@ public struct LoginView: View {
                     .frame(width: 20, height: 20)
                     .opacity(0.5)
                 Text("Googleでサインイン（未実装）")
-                    .foregroundStyle(AppColor.loginSubtleText)
+                    .foregroundStyle(AppColor.secondaryText)
             }
         }
         .buttonStyle(OutlinedButtonStyle())
@@ -92,7 +92,7 @@ public struct LoginView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text("発行された ID とパスワードを入力してください")
                 .font(.caption)
-                .foregroundStyle(AppColor.loginSubtleText)
+                .foregroundStyle(AppColor.secondaryText)
             TextField("ID", text: $store.loginId)
                 .textContentType(.username)
                 .textInputAutocapitalization(.never)
@@ -118,7 +118,7 @@ public struct LoginView: View {
                     .overlay {
                         if store.isSubmitting {
                             ProgressView()
-                                .tint(AppColor.loginDisabledButtonText)
+                                .tint(AppColor.disabledButtonText)
                         }
                     }
             }
@@ -127,20 +127,24 @@ public struct LoginView: View {
             .padding(.top, 12)
         }
         .padding(16)
-        .loginCard(cornerRadius: 12)
+        .background(AppColor.surface, in: .rect(cornerRadius: 12))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(AppColor.surfaceBorder)
+        }
     }
 
     private func errorMessage(_ message: String) -> some View {
         Text(message)
             .font(.subheadline)
-            .foregroundStyle(AppColor.loginErrorText)
+            .foregroundStyle(AppColor.errorBannerText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(AppColor.loginErrorBackground, in: .rect(cornerRadius: 12))
+            .background(AppColor.errorBannerBackground, in: .rect(cornerRadius: 12))
             .overlay {
                 RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(AppColor.loginErrorBorder)
+                    .strokeBorder(AppColor.errorBannerBorder)
             }
     }
 }
@@ -149,11 +153,15 @@ private struct OutlinedButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(AppColor.loginButtonText)
+            .foregroundStyle(AppColor.secondaryButtonText)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .loginCard(cornerRadius: 12)
+            .background(AppColor.secondaryButtonBackground, in: .rect(cornerRadius: 12))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(AppColor.secondaryButtonBorder)
+            }
     }
 }
 
@@ -163,30 +171,22 @@ private struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(isEnabled ? AppColor.loginPrimaryButtonText : AppColor.loginDisabledButtonText)
+            .foregroundStyle(isEnabled ? AppColor.primaryButtonText : AppColor.disabledButtonText)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
-            .background(isEnabled ? AppColor.loginPrimaryButton : AppColor.loginDisabledButton, in: .rect(cornerRadius: 8))
+            .background(isEnabled ? AppColor.primaryButton : AppColor.disabledButton, in: .rect(cornerRadius: 8))
     }
 }
 
 private extension View {
-    func loginCard(cornerRadius: CGFloat) -> some View {
-        background(AppColor.loginSurface, in: .rect(cornerRadius: cornerRadius))
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(AppColor.loginBorder)
-            }
-    }
-
     func inputField(isFocused: Bool) -> some View {
         font(.subheadline)
-            .foregroundStyle(AppColor.loginInputText)
+            .foregroundStyle(AppColor.primaryText)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(isFocused ? AppColor.loginFocusedBorder : AppColor.loginBorder)
+                    .strokeBorder(isFocused ? AppColor.inputFocusedBorder : AppColor.inputBorder)
             }
     }
 }

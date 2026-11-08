@@ -13,11 +13,19 @@ public enum AppColor {
     // Color.accentColor はアセットの色で .tint を反映しないため、ここでは使わない
     public static let accent = color(light: Tailwind.indigo600, dark: Tailwind.indigo400)
     public static let error = color(light: Tailwind.rose600, dark: Tailwind.rose400)
+    public static let titleText = color(light: Tailwind.slate900, dark: Tailwind.slate100)
     public static let primaryText = color(light: Tailwind.slate800, dark: Tailwind.slate100)
     public static let secondaryText = color(light: Tailwind.slate500, dark: Tailwind.slate400)
     public static let link = color(light: Tailwind.indigo600, dark: Tailwind.indigo400)
     public static let border = color(light: Tailwind.slate200, dark: Tailwind.slate800)
     public static let toolbarIcon = color(light: Tailwind.slate600, dark: Tailwind.slate400)
+
+    public static let pageBackground = color(light: Tailwind.slate100, dark: Tailwind.slate950)
+    public static let surface = color(light: Tailwind.white, dark: Tailwind.slate900)
+    public static let surfaceBorder = color(light: Tailwind.slate300, dark: Tailwind.slate700)
+    public static let errorBannerBackground = color(light: Tailwind.rose50, dark: Tailwind.rose950)
+    public static let errorBannerBorder = color(light: Tailwind.rose200, dark: Tailwind.rose800)
+    public static let errorBannerText = color(light: Tailwind.rose700, dark: Tailwind.rose300)
 
     public static let primaryButton = color(light: Tailwind.slate900, dark: Tailwind.slate100)
     public static let primaryButtonText = color(light: Tailwind.white, dark: Tailwind.slate900)
@@ -42,6 +50,7 @@ public enum AppColor {
     public static let checkOff = color(light: Tailwind.slate300, dark: Tailwind.slate700)
     public static let inputBackground = color(light: Tailwind.white, dark: Tailwind.slate900)
     public static let inputBorder = color(light: Tailwind.slate300, dark: Tailwind.slate700)
+    public static let inputFocusedBorder = fixed(Tailwind.indigo400)
 
     public static let userMessageBackground = fixed(Tailwind.indigo600)
     public static let userMessageText = fixed(Tailwind.white)
@@ -63,22 +72,6 @@ public enum AppColor {
     public static let explanationBackground = color(light: Tailwind.slate50, dark: Tailwind.slate900)
     public static let reviewModeBackground = color(light: Tailwind.amber100, dark: Tailwind.amber950)
     public static let reviewModeText = color(light: Tailwind.amber800, dark: Tailwind.amber200)
-
-    public static let loginBackground = color(light: 0xF1F5F9, dark: 0x020618)
-    public static let loginSurface = color(light: 0xFFFFFF, dark: 0x0F172B)
-    public static let loginBorder = color(light: 0xCAD5E2, dark: 0x314158)
-    public static let loginFocusedBorder = color(light: 0x7C86FF, dark: 0x7C86FF)
-    public static let loginTitle = color(light: 0x0F172B, dark: 0xF1F5F9)
-    public static let loginButtonText = color(light: 0x314158, dark: 0xE2E8F0)
-    public static let loginSubtleText = color(light: 0x62748E, dark: 0x90A1B9)
-    public static let loginInputText = color(light: 0x1D293D, dark: 0xF1F5F9)
-    public static let loginPrimaryButton = color(light: 0x0F172B, dark: 0xF1F5F9)
-    public static let loginPrimaryButtonText = color(light: 0xFFFFFF, dark: 0x0F172B)
-    public static let loginDisabledButton = color(light: 0xE2E8F0, dark: 0x1D293D)
-    public static let loginDisabledButtonText = color(light: 0x90A1B9, dark: 0x62748E)
-    public static let loginErrorBackground = color(light: 0xFFF1F2, dark: 0x4D0218)
-    public static let loginErrorBorder = color(light: 0xFFCCD3, dark: 0xA50036)
-    public static let loginErrorText = color(light: 0xC70036, dark: 0xFFA1AD)
 
     private static func fixed(_ rgb: UInt32) -> Color {
         color(light: rgb, dark: rgb)
@@ -111,6 +104,7 @@ private enum Tailwind {
     static let slate700: UInt32 = 0x314158
     static let slate800: UInt32 = 0x1D293D
     static let slate900: UInt32 = 0x0F172B
+    static let slate950: UInt32 = 0x020618
 
     static let indigo50: UInt32 = 0xEEF2FF
     static let indigo400: UInt32 = 0x7C86FF
@@ -124,9 +118,13 @@ private enum Tailwind {
     static let emerald950: UInt32 = 0x002C22
 
     static let rose50: UInt32 = 0xFFF1F2
+    static let rose200: UInt32 = 0xFFCCD3
+    static let rose300: UInt32 = 0xFFA1AD
     static let rose400: UInt32 = 0xFF637E
     static let rose500: UInt32 = 0xFF2056
     static let rose600: UInt32 = 0xEC003F
+    static let rose700: UInt32 = 0xC70036
+    static let rose800: UInt32 = 0xA50036
     static let rose950: UInt32 = 0x4D0218
 
     static let amber100: UInt32 = 0xFEF3C6

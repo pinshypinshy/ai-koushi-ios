@@ -77,7 +77,12 @@ public struct CourseFeature {
                     return .send(.delegate(.usageRefreshRequested))
                 case let .courseUpdated(course):
                     return .send(.delegate(.courseUpdated(course)))
+                case .quizRequested:
+                    return .none
                 }
+
+            case .items(.element(id: _, action: .quiz(.delegate(.sessionExpired)))):
+                return .send(.delegate(.sessionExpired))
 
             case .items, .delegate:
                 return .none
@@ -85,6 +90,13 @@ public struct CourseFeature {
         }
         .forEach(\.items, action: \.items) {
             CourseItemFeature()
+        }
+        // サイドバーの取り直しでも講義の取得でも変わるため、変わった後の状態を見て拾う（§4.15）
+        .onChange(of: { QuizStatusSnapshot(courseID: $0.selectedCourseID, quizStatus: $0.selectedItem?.quizStatus) }) { old, new in
+            Reduce { _, _ in
+                guard let id = new.courseID, old.courseID == id, old.quizStatus != .ready, new.quizStatus == .ready else { return .none }
+                return .send(.items(.element(id: id, action: .refreshQuizIfShown)))
+            }
         }
     }
 
@@ -104,8 +116,19 @@ public struct CourseFeature {
         if state.items[id: selectedCourseID] == nil {
             state.items.append(CourseItemFeature.State(summary: selected))
         }
-        guard isSelectionChanged || state.items[id: selectedCourseID]?.lecture.isStatusOutdated == true else { return .none }
         // forEach を通さないと、キャンセルの ID が講義ごとに分かれない（ADR 0004）
-        return .send(.items(.element(id: selectedCourseID, action: .lecture(.fetchRequested))))
+        var effects: [Effect<Action>] = []
+        if isSelectionChanged || state.items[id: selectedCourseID]?.lecture.isStatusOutdated == true {
+            effects.append(.send(.items(.element(id: selectedCourseID, action: .lecture(.fetchRequested)))))
+        }
+        if isSelectionChanged, state.items[id: selectedCourseID]?.displayedTab == .quiz {
+            effects.append(.send(.items(.element(id: selectedCourseID, action: .refreshQuizIfShown))))
+        }
+        return .merge(effects)
     }
+}
+
+private struct QuizStatusSnapshot: Equatable {
+    let courseID: CourseSummary.ID?
+    let quizStatus: QuizStatus?
 }

@@ -189,6 +189,33 @@ struct AppFeatureTests {
         await store.finish()
     }
 
+    @Test func main_ログアウトしたら採点の待機をやめる() async {
+        let question = ApiQuestion(id: "q1", stem: "問題", choices: [ApiChoice(id: "a", body: "選択肢A")], coveredStepIds: [])
+        var main = MainFeature.State(bootstrap: .mock(courses: [.mock("c1")]))
+        main.course.items[id: "c1"]?.quiz.screen = .session(.init(mode: .normal, questions: [question], answer: .selecting("a")))
+        let store = TestStore(initialState: AppFeature.State.main(main)) {
+            AppFeature()
+        } withDependencies: {
+            $0.apiClient.attempt = { _, _ in
+                try await Task.sleep(for: .seconds(3600))
+                return AttemptResult(questionId: "q1", selectedChoiceId: "a", correctChoiceId: "a", isCorrect: true, explanation: "解説")
+            }
+            $0.apiClient.logout = {}
+        }
+
+        await store.send(.main(.course(.items(.element(id: "c1", action: .quiz(.submitButtonTapped)))))) {
+            $0.modify(\.main) {
+                $0.course.items[id: "c1"]?.quiz.screen = .session(.init(mode: .normal, questions: [question], answer: .grading("a")))
+            }
+        }
+        await store.send(.main(.sidebar(.logoutButtonTapped)))
+        await store.receive(\.main.sidebar.delegate.logoutRequested)
+        await store.receive(\.main.delegate.logoutRequested) { $0 = .loggingOut }
+        await store.receive(\.logoutFinished) { $0 = .login(LoginFeature.State()) }
+        // やめられていなければ、Effect が終わらずに失敗する
+        await store.finish()
+    }
+
     // MARK: - 補助
 
     private func makeStoreWithTwoLectures(

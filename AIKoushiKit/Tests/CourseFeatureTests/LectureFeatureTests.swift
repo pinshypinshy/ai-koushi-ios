@@ -256,6 +256,15 @@ struct LectureFeatureTests {
         await store.send(.progressPanelTapped) { $0.isProgressExpanded = false }
     }
 
+    // MARK: - quizButtonTapped
+
+    @Test func quizButtonTapped_親に確認テストを頼む() async {
+        let store = makeStore(.init(summary: .mock(), detail: .mock(currentStepId: nil)))
+
+        await store.send(.quizButtonTapped)
+        await store.receive(\.delegate.quizRequested)
+    }
+
     // MARK: - linkTapped
 
     @Test func linkTapped_ブラウザで開く() async {

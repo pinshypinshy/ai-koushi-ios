@@ -71,6 +71,7 @@ public struct LectureFeature {
         case retryFetchButtonTapped
         case progressPanelTapped
         case linkTapped(URL)
+        case quizButtonTapped
 
         case fetchSucceeded(CourseDetail)
         case fetchFailed(any Error)
@@ -88,6 +89,7 @@ public struct LectureFeature {
             case sessionExpired
             case usageRefreshRequested
             case courseUpdated(CourseSummary)
+            case quizRequested
         }
     }
 
@@ -134,6 +136,9 @@ public struct LectureFeature {
                 return .run { [openURL] _ in
                     await openURL(url)
                 }
+
+            case .quizButtonTapped:
+                return .send(.delegate(.quizRequested))
 
             case let .fetchSucceeded(detail):
                 state.replaceCourse(with: detail)

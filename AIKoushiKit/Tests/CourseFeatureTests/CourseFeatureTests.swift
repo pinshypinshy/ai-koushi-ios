@@ -162,6 +162,64 @@ struct CourseFeatureTests {
         await store.finish()
     }
 
+    @Test func coursesChanged_確認テストを表示している講義へ切り替えると取得する() async {
+        var state = CourseFeature.State(courses: [.mock("c1")], selected: .mock("c1"))
+        var c2 = CourseItemFeature.State(summary: .mock("c2", quizStatus: .ready), detail: .mock("c2", quizStatus: .ready))
+        c2.selectedTab = .quiz
+        // 講義の取得を起こさないよう、受信中にしておく
+        c2.lecture.activity = .streaming(text: "途中", replacingMessageID: nil)
+        state.items.append(c2)
+        let store = makeStore(state) {
+            $0.apiClient.quiz = { _ in quizResponse }
+        }
+
+        await store.send(.coursesChanged(courses: [.mock("c1"), .mock("c2", quizStatus: .ready)], selectedCourseID: "c2")) {
+            $0.selectedCourseID = "c2"
+        }
+        await store.receive(\.items[id: "c2"].lecture.fetchRequested)
+        await store.receive(\.items[id: "c2"].refreshQuizIfShown)
+        await receiveQuizFetch(store, "c2")
+    }
+
+    @Test func coursesChanged_確認テストがreadyになったら取得する() async {
+        var state = CourseFeature.State(courses: [.mock("c1")], selected: .mock("c1", messages: [.assistant("a1")]))
+        state.items[id: "c1"]?.selectedTab = .quiz
+        let ready = CourseSummary.mock("c1", quizStatus: .ready)
+        let store = makeStore(state) {
+            $0.apiClient.quiz = { _ in quizResponse }
+        }
+
+        await store.send(.coursesChanged(courses: [ready], selectedCourseID: "c1")) {
+            $0.items[id: "c1"]?.lecture.summary = ready
+        }
+        await store.receive(\.items[id: "c1"].refreshQuizIfShown)
+        await receiveQuizFetch(store, "c1")
+    }
+
+    @Test func coursesChanged_消えた講義の採点をやめる() async {
+        var state = CourseFeature.State(courses: [.mock("c1"), .mock("c2")], selected: .mock("c1"))
+        state.items[id: "c1"]?.quiz.screen = .session(.init(mode: .normal, questions: [quizQuestion], answer: .selecting("a")))
+        let detail = CourseDetail.mock("c2", messages: [.assistant("a1")])
+        let store = makeStore(state) {
+            $0.apiClient.attempt = { _, _ in
+                try await Task.sleep(for: .seconds(3600))
+                return correctAttempt
+            }
+            $0.apiClient.course = { _ in detail }
+        }
+
+        await store.send(.items(.element(id: "c1", action: .quiz(.submitButtonTapped)))) {
+            $0.items[id: "c1"]?.quiz.screen = .session(.init(mode: .normal, questions: [quizQuestion], answer: .grading("a")))
+        }
+        await store.send(.coursesChanged(courses: [.mock("c2")], selectedCourseID: "c2")) {
+            $0.selectedCourseID = "c2"
+            $0.items = [.init(summary: .mock("c2"))]
+        }
+        await receiveFetch(store, "c2", detail)
+        // やめられていなければ、Effect が終わらずに失敗する
+        await store.finish()
+    }
+
     @Test func coursesChanged_0件なら選択を外す() async {
         let store = makeStore(.init(courses: [.mock("c1")], selected: .mock("c1")))
 
@@ -252,6 +310,61 @@ struct CourseFeatureTests {
         await store.receive(\.delegate.usageRefreshRequested)
     }
 
+    @Test func items_採点中に切り替えても結果はその講義にだけ届く() async {
+        let (gate, release) = AsyncStream.makeStream(of: Void.self)
+        var state = CourseFeature.State(courses: [.mock("c1"), .mock("c2")], selected: .mock("c1"))
+        state.items[id: "c1"]?.quiz.screen = .session(.init(mode: .normal, questions: [quizQuestion], answer: .selecting("a")))
+        var c2 = CourseItemFeature.State(summary: .mock("c2"), detail: .mock("c2"))
+        // 講義の取得を起こさないよう、受信中にしておく
+        c2.lecture.activity = .streaming(text: "途中", replacingMessageID: nil)
+        state.items.append(c2)
+        let store = makeStore(state) {
+            $0.apiClient.attempt = { _, _ in
+                for await _ in gate { break }
+                return correctAttempt
+            }
+        }
+
+        await store.send(.items(.element(id: "c1", action: .quiz(.submitButtonTapped)))) {
+            $0.items[id: "c1"]?.quiz.screen = .session(.init(mode: .normal, questions: [quizQuestion], answer: .grading("a")))
+        }
+        await store.send(.coursesChanged(courses: [.mock("c1"), .mock("c2")], selectedCourseID: "c2")) {
+            $0.selectedCourseID = "c2"
+        }
+        await store.receive(\.items[id: "c2"].lecture.fetchRequested)
+        release.yield()
+        await store.receive(\.items[id: "c1"].quiz.attemptSucceeded) {
+            $0.items[id: "c1"]?.quiz.screen = .session(
+                .init(mode: .normal, questions: [quizQuestion], answer: .answered(correctAttempt))
+            )
+        }
+    }
+
+    @Test func items_講義の取得で確認テストがreadyになったら取得する() async {
+        var state = CourseFeature.State(courses: [.mock("c1")], selected: .mock("c1", messages: [.assistant("a1")]))
+        state.items[id: "c1"]?.selectedTab = .quiz
+        let ready = CourseDetail.mock("c1", quizStatus: .ready, messages: [.assistant("a1")])
+        let store = makeStore(state) {
+            $0.apiClient.quiz = { _ in quizResponse }
+        }
+
+        await store.send(.items(.element(id: "c1", action: .lecture(.fetchSucceeded(ready))))) {
+            $0.items[id: "c1"]?.lecture.detail = ready
+            $0.items[id: "c1"]?.lecture.summary = ready.summary
+        }
+        await store.receive(\.items[id: "c1"].lecture.delegate.courseUpdated)
+        await store.receive(\.items[id: "c1"].refreshQuizIfShown)
+        await store.receive(\.delegate.courseUpdated)
+        await receiveQuizFetch(store, "c1")
+    }
+
+    @Test func items_確認テストのセッション切れを親へ中継する() async {
+        let store = makeStore(.init(courses: [.mock("c1")], selected: .mock("c1")))
+
+        await store.send(.items(.element(id: "c1", action: .quiz(.delegate(.sessionExpired)))))
+        await store.receive(\.delegate.sessionExpired)
+    }
+
     @Test func items_通知を親へ中継する() async {
         let updated = CourseSummary.mock("c1", completedSteps: 1)
         let store = makeStore(.init(courses: [.mock("c1")], selected: .mock("c1")))
@@ -277,6 +390,14 @@ struct CourseFeatureTests {
         }
     }
 
+    private func receiveQuizFetch(_ store: TestStoreOf<CourseFeature>, _ id: String) async {
+        await store.receive(\.items[id: id].quiz.fetchRequested) { $0.items[id: id]?.quiz.isFetching = true }
+        await store.receive(\.items[id: id].quiz.fetchSucceeded) {
+            $0.items[id: id]?.quiz.isFetching = false
+            $0.items[id: id]?.quiz.bank = .init(quizResponse)
+        }
+    }
+
     /// 取得が始まってから、発言のある講義の取得が成功し、親へ知らせるまで
     private func receiveFetch(_ store: TestStoreOf<CourseFeature>, _ id: String, _ detail: CourseDetail) async {
         await store.receive(\.items[id: id].lecture.fetchRequested) {
@@ -291,6 +412,15 @@ struct CourseFeatureTests {
     }
 }
 
+private let quizQuestion = ApiQuestion(
+    id: "q1",
+    stem: "問題",
+    choices: [ApiChoice(id: "a", body: "選択肢A"), ApiChoice(id: "b", body: "選択肢B")],
+    coveredStepIds: ["s1"]
+)
+private let quizResponse = QuizResponse(questions: [quizQuestion], latestAttempts: [])
+private let correctAttempt = AttemptResult(questionId: "q1", selectedChoiceId: "a", correctChoiceId: "a", isCorrect: true, explanation: "解説")
+
 extension AsyncThrowingStream<LectureStreamLine, any Error> {
     fileprivate static func lines(_ lines: LectureStreamLine...) -> Self {
         AsyncThrowingStream { continuation in
@@ -303,9 +433,14 @@ extension AsyncThrowingStream<LectureStreamLine, any Error> {
 }
 
 extension CourseSummary {
-    fileprivate static func mock(_ id: String, status: CourseStatus = .ready, completedSteps: Int = 0) -> CourseSummary {
+    fileprivate static func mock(
+        _ id: String,
+        status: CourseStatus = .ready,
+        quizStatus: QuizStatus = .pending,
+        completedSteps: Int = 0
+    ) -> CourseSummary {
         CourseSummary(
-            id: id, title: "講義 \(id)", status: status, quizStatus: .pending, phase: nil, errorMessage: nil,
+            id: id, title: "講義 \(id)", status: status, quizStatus: quizStatus, phase: nil, errorMessage: nil,
             totalSteps: 2, completedSteps: completedSteps, updatedAt: 0
         )
     }
@@ -315,11 +450,12 @@ extension CourseDetail {
     fileprivate static func mock(
         _ id: String,
         status: CourseStatus = .ready,
+        quizStatus: QuizStatus = .pending,
         currentStepId: String? = "s1",
         messages: [ApiMessage] = []
     ) -> CourseDetail {
         CourseDetail(
-            summary: .mock(id, status: status),
+            summary: .mock(id, status: status, quizStatus: quizStatus),
             currentStepId: currentStepId,
             steps: [
                 ApiStep(id: "s1", orderIndex: 1, title: "はじめに", status: .inProgress),

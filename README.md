@@ -20,6 +20,7 @@
 | アーキテクチャ | [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture)（TCA）1.26.2 |
 | 対応OS・端末 | iOS 17 以上、iPhone のみ、縦のみ |
 | テスト | Swift Testing ＋ TCA の TestStore |
+| Markdown と数式の表示 | WKWebView ＋ KaTeX（Web版と同じ処理） |
 
 機能はローカルパッケージ `AIKoushiKit` のモジュールに分け、アプリ本体（`AIKoushi`）は組み立てるだけにしている。
 
@@ -32,7 +33,9 @@ AIKoushiKit/     … ローカルパッケージ
   APIClientLive  … URLSession による実装
   APIClientFake  … 確認用の偽の API
   SharedUI       … 複数の画面で使う View 部品
+  MarkdownWebView … Markdown と数式を WebView で表示する部品
   *Feature       … 画面ごとの Feature（Login・Sidebar・Course・App）
+WebRenderer/     … WebView の中で動く TypeScript（ビルドした成果物を MarkdownWebView に同梱）
 ```
 
 モジュールの依存の向きはコンパイラに守らせている。Feature とそのテストは API クライアントの実装に依存できず、

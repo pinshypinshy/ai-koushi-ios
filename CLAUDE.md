@@ -73,7 +73,9 @@ AIKoushiKit/                 … ローカルパッケージ
 │   ├── APIClientLive/       … URLSession による実装。アプリ本体と自身のテストだけが import する
 │   ├── APIClientFake/       … 偽の API と架空のデータ。確認用のアプリだけが import する
 │   ├── SharedUI/            … 複数の Feature で使う View 部品
-│   ├── MarkdownWebView/     … Markdown と数式を WKWebView で表示する View。共通の器とページに分ける（ADR 0003・0009）
+│   ├── MarkdownWebView/     … Markdown と数式を WKWebView で表示する View（ADR 0003・0009）
+│   │   ├── Core/            … 共通の器。ページを足しても手を入れない
+│   │   ├── <Page>/          … ページごとの内容・命令・知らせ・View（Conversation など）
 │   │   └── Resources/       … WebRenderer/ をビルドした成果物。手で編集しない
 │   ├── <Name>Feature/       … 画面ごとの Feature（Reducer と View を同じモジュールに置く）
 │   └── AppFeature/          … ルート。起動・セッション切れ・画面の切り替え
@@ -81,6 +83,9 @@ AIKoushiKit/                 … ローカルパッケージ
     ├── MarkdownWebViewTests/ … 送る内容の計算と、シミュレータ上での描画のテスト
     └── <Name>FeatureTests/  … Feature ごとのテスト
 WebRenderer/                 … WebView の中で動く TypeScript のソースとビルドの設定
+└── src/
+    ├── core/                … 共通の器
+    └── <page>/              … ページごとの入口・命令・描画・HTML・CSS
 ```
 
 - 依存の向き：`Models ← APIClient ← 各 Feature ← AppFeature ← アプリ本体 → APIClientLive`

@@ -26,12 +26,17 @@ public struct CourseView: View {
     }
 
     public var body: some View {
-        NavigationStack {
-            Group {
-                if let id = store.selectedCourseID,
-                   let itemStore = store.scope(state: \.items[id: id], action: \.items[id: id]) {
-                    LectureView(store: itemStore.scope(state: \.lecture, action: \.lecture), isSidebarOpen: isSidebarOpen, onScrollBoxTouch: onScrollBoxTouch)
-                } else {
+        Group {
+            if let id = store.selectedCourseID,
+               let itemStore = store.scope(state: \.items[id: id], action: \.items[id: id]) {
+                CourseItemView(
+                    store: itemStore,
+                    isSidebarOpen: isSidebarOpen,
+                    onScrollBoxTouch: onScrollBoxTouch,
+                    onMenuTap: { store.send(.menuButtonTapped) }
+                )
+            } else {
+                NavigationStack {
                     ContentUnavailableView {
                         Text("まだ講義がありません")
                     } description: {
@@ -42,18 +47,7 @@ public struct CourseView: View {
                         }
                         .buttonStyle(.borderedProminent)
                     }
-                }
-            }
-            .navigationTitle(store.selectedItem?.lecture.summary.title ?? "")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        store.send(.menuButtonTapped)
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                    }
-                    .accessibilityLabel("サイドバーを開く")
+                    .courseToolbar(title: "", onMenuTap: { store.send(.menuButtonTapped) })
                 }
             }
         }

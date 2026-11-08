@@ -53,6 +53,8 @@ public enum AppColor {
     public static let stepCompleted = Color.green
     public static let stepCurrent = Color.accentColor
     public static let stepNotStarted = Color(uiColor: .tertiaryLabel)
+    public static let checkOn = Color.accentColor
+    public static let checkOff = Color(uiColor: .tertiaryLabel)
     public static let inputBackground = Color(uiColor: .secondarySystemBackground)
 
     public static let link = Color(uiColor: .link)

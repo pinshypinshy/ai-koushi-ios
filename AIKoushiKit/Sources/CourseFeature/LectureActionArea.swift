@@ -39,6 +39,14 @@ struct LectureActionArea: View {
                 }
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
+                Button {
+                    store.send(.quizButtonTapped)
+                } label: {
+                    Text("確認テストへ")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .padding(.top, 8)
             }
             if store.showsCompleteStepButton {
                 Button {

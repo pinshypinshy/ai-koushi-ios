@@ -23,6 +23,11 @@ struct Theme: Equatable, Encodable {
         var codeBlockBackground: String
         var codeBlockText: String
         var tableHeaderBackground: String
+        var choiceBackground: String
+        var choiceBorder: String
+        var choiceSelected: String
+        var answerCorrect: String
+        var answerIncorrect: String
     }
 
     var colors: Colors
@@ -48,7 +53,12 @@ extension Theme {
                 codeBackground: css(AppColor.codeBackground),
                 codeBlockBackground: css(AppColor.codeBlockBackground),
                 codeBlockText: css(AppColor.codeBlockText),
-                tableHeaderBackground: css(AppColor.tableHeaderBackground)
+                tableHeaderBackground: css(AppColor.tableHeaderBackground),
+                choiceBackground: css(AppColor.choiceBackground),
+                choiceBorder: css(AppColor.choiceBorder),
+                choiceSelected: css(AppColor.choiceSelected),
+                answerCorrect: css(AppColor.answerCorrect),
+                answerIncorrect: css(AppColor.answerIncorrect)
             ),
             fontSize: UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits).pointSize
         )

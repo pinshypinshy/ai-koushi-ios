@@ -65,4 +65,10 @@ public enum AppColor {
     public static let codeBlockBackground = Color(uiColor: .secondarySystemBackground)
     public static let codeBlockText = Color.primary
     public static let tableHeaderBackground = Color(uiColor: .secondarySystemBackground)
+
+    public static let choiceBackground = Color(uiColor: .secondarySystemBackground)
+    public static let choiceBorder = Color(uiColor: .separator)
+    public static let choiceSelected = Color.accentColor
+    public static let answerCorrect = Color.green
+    public static let answerIncorrect = Color.red
 }

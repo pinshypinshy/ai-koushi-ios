@@ -9,7 +9,7 @@ await rm(outdir, { recursive: true, force: true })
 await mkdir(outdir, { recursive: true })
 
 // ページごとに、<名前>.html・<名前>.js・<名前>.css を書き出す（ADR 0009）。名前は Swift の PageDefinition.name と同じにする
-const pages = ['conversation']
+const pages = ['conversation', 'quiz']
 
 await build({
   entryPoints: pages.flatMap((page) => [

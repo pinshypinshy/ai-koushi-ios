@@ -36,7 +36,9 @@ struct OutgoingCommandTests {
             colors: .init(
                 text: "t", secondaryText: "s", link: "l", error: "e", border: "b",
                 userMessageBackground: "ub", userMessageText: "ut", codeBackground: "cb",
-                codeBlockBackground: "cbb", codeBlockText: "cbt", tableHeaderBackground: "th"
+                codeBlockBackground: "cbb", codeBlockText: "cbt", tableHeaderBackground: "th",
+                choiceBackground: "chb", choiceBorder: "chr", choiceSelected: "chs",
+                answerCorrect: "ac", answerIncorrect: "ai"
             ),
             fontSize: 17
         )
@@ -45,7 +47,8 @@ struct OutgoingCommandTests {
         encoder.outputFormatting = [.sortedKeys]
         let json = String(decoding: try encoder.encode(commands), as: UTF8.self)
         #expect(json == """
-        [{"theme":{"colors":{"border":"b","codeBackground":"cb","codeBlockBackground":"cbb","codeBlockText":"cbt",\
+        [{"theme":{"colors":{"answerCorrect":"ac","answerIncorrect":"ai","border":"b","choiceBackground":"chb",\
+        "choiceBorder":"chr","choiceSelected":"chs","codeBackground":"cb","codeBlockBackground":"cbb","codeBlockText":"cbt",\
         "error":"e","link":"l","secondaryText":"s","tableHeaderBackground":"th","text":"t",\
         "userMessageBackground":"ub","userMessageText":"ut"},"fontSize":17},"type":"configure"},\
         {"text":null,"type":"setStreaming"}]

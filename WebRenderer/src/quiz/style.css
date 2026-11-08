@@ -1,0 +1,126 @@
+@import '../core/base.css';
+
+#page {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 16px;
+}
+
+.md {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.stem {
+  font-weight: 600;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+/* 押せる領域を 44pt 以上にする（§3.7） */
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0.7em 0.9em;
+  border: 2px solid var(--color-choiceBorder);
+  border-radius: 12px;
+  background: var(--color-choiceBackground);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.choice.selected {
+  border-color: var(--color-choiceSelected);
+}
+.choice.correct {
+  border-color: var(--color-answerCorrect);
+}
+.choice.yourAnswer {
+  border-color: var(--color-answerIncorrect);
+}
+
+.choice-label {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.6em;
+  height: 1.6em;
+  border: 1.5px solid var(--color-choiceBorder);
+  border-radius: 6px;
+  color: var(--color-secondaryText);
+  font-size: 0.8em;
+  font-weight: 700;
+}
+.choice.selected .choice-label {
+  border-color: var(--color-choiceSelected);
+  color: var(--color-choiceSelected);
+}
+.choice.correct .choice-label {
+  border-color: var(--color-answerCorrect);
+  color: var(--color-answerCorrect);
+}
+.choice.yourAnswer .choice-label {
+  border-color: var(--color-answerIncorrect);
+  color: var(--color-answerIncorrect);
+}
+
+.choice-body {
+  flex: 1;
+  line-height: 1.7;
+}
+
+.choice-badge {
+  flex: none;
+  align-self: center;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+.choice.correct .choice-badge {
+  color: var(--color-answerCorrect);
+}
+.choice.yourAnswer .choice-badge {
+  color: var(--color-answerIncorrect);
+}
+
+.explanation {
+  padding: 1em;
+  border: 1px solid var(--color-choiceBorder);
+  border-radius: 12px;
+  background: var(--color-choiceBackground);
+}
+
+.explanation-heading {
+  margin-bottom: 0.5em;
+  color: var(--color-secondaryText);
+  font-size: 0.8em;
+  font-weight: 700;
+}
+
+.related {
+  margin-top: 0.75em;
+  padding-top: 0.75em;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-secondaryText);
+  font-size: 0.75em;
+}
+
+.wrong-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.wrong-stem {
+  padding: 0.6em 0.9em;
+  border: 1px solid var(--color-choiceBorder);
+  border-radius: 10px;
+}

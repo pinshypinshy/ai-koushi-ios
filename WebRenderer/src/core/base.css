@@ -14,6 +14,11 @@
   --color-codeBlockBackground: #0f172a;
   --color-codeBlockText: #f1f5f9;
   --color-tableHeaderBackground: #f8fafc;
+  --color-choiceBackground: #ffffff;
+  --color-choiceBorder: #e2e8f0;
+  --color-choiceSelected: #6366f1;
+  --color-answerCorrect: #10b981;
+  --color-answerIncorrect: #fb7185;
   --font-size: 17px;
   -webkit-text-size-adjust: 100%;
 }

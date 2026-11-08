@@ -9,6 +9,9 @@ import SwiftUI
 
 // 配色は未決（§8）。決まるまでは iOS 標準の色を当てておく
 public enum AppColor {
+    // 標準の部品（ボタン・ProgressView など）には、AppView の .tint で渡す。
+    // Color.accentColor はアセットの色で .tint を反映しないため、ここでは使わない
+    public static let accent = Color(uiColor: .systemBlue)
     public static let error = Color.red
     public static let primaryText = Color.primary
     public static let secondaryText = Color.secondary
@@ -46,20 +49,20 @@ public enum AppColor {
     public static let selectedRowBackground = Color(uiColor: .secondarySystemFill)
 
     public static let usageTrack = Color(uiColor: .systemFill)
-    public static let usageNormal = Color.accentColor
+    public static let usageNormal = accent
     public static let usageWarning = Color.orange
     public static let usageLimit = Color.red
 
     public static let stepCompleted = Color.green
-    public static let stepCurrent = Color.accentColor
+    public static let stepCurrent = accent
     public static let stepNotStarted = Color(uiColor: .tertiaryLabel)
-    public static let checkOn = Color.accentColor
+    public static let checkOn = accent
     public static let checkOff = Color(uiColor: .tertiaryLabel)
     public static let inputBackground = Color(uiColor: .secondarySystemBackground)
 
     public static let link = Color(uiColor: .link)
     public static let border = Color(uiColor: .separator)
-    public static let userMessageBackground = Color.accentColor
+    public static let userMessageBackground = accent
     public static let userMessageText = Color.white
     public static let codeBackground = Color(uiColor: .tertiarySystemFill)
     public static let codeBlockBackground = Color(uiColor: .secondarySystemBackground)
@@ -68,7 +71,7 @@ public enum AppColor {
 
     public static let choiceBackground = Color(uiColor: .secondarySystemBackground)
     public static let choiceBorder = Color(uiColor: .separator)
-    public static let choiceSelected = Color.accentColor
+    public static let choiceSelected = accent
     public static let answerCorrect = Color.green
     public static let answerIncorrect = Color.red
     public static let reviewMode = Color.orange

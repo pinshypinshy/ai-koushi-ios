@@ -7,6 +7,7 @@
 
 import ComposableArchitecture
 import LoginFeature
+import SharedUI
 import SwiftUI
 
 public struct AppView: View {
@@ -53,6 +54,7 @@ public struct AppView: View {
                 }
             }
         }
+        .tint(AppColor.accent)
         .task { store.send(.task) }
     }
 }

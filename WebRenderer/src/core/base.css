@@ -1,25 +1,7 @@
 @import 'katex/dist/katex.min.css';
 
-/* 色と文字の大きさは Swift から configure で上書きする（AppColor、Dynamic Type）。
-   ここの値は、アプリの外（ブラウザでの確認）で開いたときのためのもの */
+/* --color-* と --font-size は、Swift から届く configure で theme.ts が設定する（AppColor、Dynamic Type） */
 :root {
-  --color-text: #1e293b;
-  --color-secondaryText: #64748b;
-  --color-link: #4f46e5;
-  --color-error: #dc2626;
-  --color-border: #e2e8f0;
-  --color-userMessageBackground: #4f46e5;
-  --color-userMessageText: #ffffff;
-  --color-codeBackground: #f1f5f9;
-  --color-codeBlockBackground: #0f172a;
-  --color-codeBlockText: #f1f5f9;
-  --color-tableHeaderBackground: #f8fafc;
-  --color-choiceBackground: #ffffff;
-  --color-choiceBorder: #e2e8f0;
-  --color-choiceSelected: #6366f1;
-  --color-answerCorrect: #10b981;
-  --color-answerIncorrect: #fb7185;
-  --font-size: 17px;
   -webkit-text-size-adjust: 100%;
 }
 

@@ -5,6 +5,7 @@
 //  Created by 平石悠生 on 2026/11/08.
 //
 
+import SharedUI
 import SwiftUI
 
 /// 一番上の行。タブごとに NavigationStack を持つため、どのタブにも同じものを付ける（§3.5）
@@ -20,6 +21,7 @@ struct CourseToolbar: ViewModifier {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: onMenuTap) {
                         Image(systemName: "line.3.horizontal")
+                            .foregroundStyle(AppColor.toolbarIcon)
                     }
                     .accessibilityLabel("サイドバーを開く")
                 }

@@ -38,12 +38,15 @@
 }
 .choice.selected {
   border-color: var(--color-choiceSelected);
+  background: var(--color-choiceSelectedBackground);
 }
 .choice.correct {
   border-color: var(--color-answerCorrect);
+  background: var(--color-answerCorrectBackground);
 }
 .choice.yourAnswer {
   border-color: var(--color-answerIncorrect);
+  background: var(--color-answerIncorrectBackground);
 }
 
 .choice-label {
@@ -54,23 +57,23 @@
   box-sizing: border-box;
   width: 1.6em;
   height: 1.6em;
-  border: 1.5px solid var(--color-choiceBorder);
   border-radius: 6px;
+  background: var(--color-choiceLabelBackground);
   color: var(--color-secondaryText);
   font-size: 0.8em;
   font-weight: 700;
 }
 .choice.selected .choice-label {
-  border-color: var(--color-choiceSelected);
-  color: var(--color-choiceSelected);
+  background: var(--color-choiceSelected);
+  color: var(--color-choiceLabelFilledText);
 }
 .choice.correct .choice-label {
-  border-color: var(--color-answerCorrect);
-  color: var(--color-answerCorrect);
+  background: var(--color-answerCorrect);
+  color: var(--color-choiceLabelFilledText);
 }
 .choice.yourAnswer .choice-label {
-  border-color: var(--color-answerIncorrect);
-  color: var(--color-answerIncorrect);
+  background: var(--color-answerIncorrect);
+  color: var(--color-choiceLabelFilledText);
 }
 
 .choice-body {
@@ -95,7 +98,7 @@
   padding: 1em;
   border: 1px solid var(--color-choiceBorder);
   border-radius: 12px;
-  background: var(--color-choiceBackground);
+  background: var(--color-explanationBackground);
 }
 
 .explanation-heading {

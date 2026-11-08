@@ -25,9 +25,15 @@ struct Theme: Equatable, Encodable {
         var tableHeaderBackground: String
         var choiceBackground: String
         var choiceBorder: String
+        var choiceLabelBackground: String
+        var choiceLabelFilledText: String
         var choiceSelected: String
+        var choiceSelectedBackground: String
         var answerCorrect: String
+        var answerCorrectBackground: String
         var answerIncorrect: String
+        var answerIncorrectBackground: String
+        var explanationBackground: String
     }
 
     var colors: Colors
@@ -56,9 +62,15 @@ extension Theme {
                 tableHeaderBackground: css(AppColor.tableHeaderBackground),
                 choiceBackground: css(AppColor.choiceBackground),
                 choiceBorder: css(AppColor.choiceBorder),
+                choiceLabelBackground: css(AppColor.choiceLabelBackground),
+                choiceLabelFilledText: css(AppColor.choiceLabelFilledText),
                 choiceSelected: css(AppColor.choiceSelected),
+                choiceSelectedBackground: css(AppColor.choiceSelectedBackground),
                 answerCorrect: css(AppColor.answerCorrect),
-                answerIncorrect: css(AppColor.answerIncorrect)
+                answerCorrectBackground: css(AppColor.answerCorrectBackground),
+                answerIncorrect: css(AppColor.answerIncorrect),
+                answerIncorrectBackground: css(AppColor.answerIncorrectBackground),
+                explanationBackground: css(AppColor.explanationBackground)
             ),
             fontSize: UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits).pointSize
         )

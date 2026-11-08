@@ -62,7 +62,7 @@ struct LectureView: View {
                 Button("再試行") {
                     store.send(.retryFetchButtonTapped)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.appSecondary)
             }
         }
         .padding()

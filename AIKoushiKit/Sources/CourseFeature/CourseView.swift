@@ -45,7 +45,7 @@ public struct CourseView: View {
                         Button("Web版を開く") {
                             store.send(.openWebButtonTapped)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.appPrimary)
                     }
                     .courseToolbar(title: "", onMenuTap: { store.send(.menuButtonTapped) })
                 }

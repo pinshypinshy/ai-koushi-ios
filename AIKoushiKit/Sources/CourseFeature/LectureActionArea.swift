@@ -25,7 +25,7 @@ struct LectureActionArea: View {
                     Text("再生成する")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.appSecondary)
                 .padding(.top, 8)
             }
             if store.isAllStepsCompleted {
@@ -45,7 +45,7 @@ struct LectureActionArea: View {
                     Text("確認テストへ")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.appSecondary)
                 .padding(.top, 8)
             }
             if store.showsCompleteStepButton {
@@ -55,7 +55,7 @@ struct LectureActionArea: View {
                     Text(completeStepTitle)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.appPrimary)
                 .disabled(!store.canCompleteStep)
                 .padding(.top, 8)
             }

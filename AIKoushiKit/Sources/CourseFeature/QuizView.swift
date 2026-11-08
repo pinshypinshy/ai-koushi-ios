@@ -68,7 +68,7 @@ struct QuizView: View {
                     Button("再試行") {
                         store.send(.retryFetchButtonTapped)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.appSecondary)
                 }
             }
         } else {

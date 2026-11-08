@@ -37,7 +37,7 @@ public struct AppView: View {
                     Button("再試行") {
                         store.send(.retryButtonTapped)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.appPrimary)
                 }
 
             case .login:

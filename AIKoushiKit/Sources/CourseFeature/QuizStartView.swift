@@ -45,7 +45,7 @@ struct QuizStartView: View {
                     Text("テストを始める")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.appPrimary)
                 .disabled(store.filteredQuestions.isEmpty)
             }
 
@@ -66,7 +66,7 @@ struct QuizStartView: View {
                     Text("誤答のみに取り組む（\(store.reviewQuestions.count)問）")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.appSecondary)
                 .disabled(store.reviewQuestions.isEmpty)
             }
         }

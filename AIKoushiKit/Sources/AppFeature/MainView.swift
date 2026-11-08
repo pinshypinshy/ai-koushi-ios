@@ -58,6 +58,8 @@ struct MainView: View {
                     .shadow(radius: 8 * progress)
                     .offset(x: offset)
             }
+            // 丸めたメイン画面の角の外側に、ウィンドウの色を透かさない
+            .background(AppColor.sidebarBackground.ignoresSafeArea())
             .simultaneousGesture(dragGesture(sidebarWidth: sidebarWidth))
         }
         .animation(Self.snapAnimation, value: store.isSidebarOpen)

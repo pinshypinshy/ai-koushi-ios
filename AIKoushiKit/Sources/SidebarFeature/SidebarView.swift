@@ -66,6 +66,8 @@ public struct SidebarView: View {
                 .padding(.vertical)
         }
         .background(AppColor.sidebarBackground)
+        // §5。文字や標準の部品も暗い配色の値で描かせる
+        .environment(\.colorScheme, .dark)
     }
 
     private func courseRow(_ course: CourseSummary) -> some View {

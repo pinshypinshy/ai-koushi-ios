@@ -15,9 +15,15 @@ export const colorNames = [
   'tableHeaderBackground',
   'choiceBackground',
   'choiceBorder',
+  'choiceLabelBackground',
+  'choiceLabelFilledText',
   'choiceSelected',
+  'choiceSelectedBackground',
   'answerCorrect',
+  'answerCorrectBackground',
   'answerIncorrect',
+  'answerIncorrectBackground',
+  'explanationBackground',
 ] as const
 
 export type ColorName = (typeof colorNames)[number]

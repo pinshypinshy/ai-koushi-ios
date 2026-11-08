@@ -64,7 +64,7 @@ struct QuizResultView: View {
                 Text("誤答のみ再挑戦（\(store.reviewQuestions.count)問）")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.appPrimary)
             .disabled(store.reviewQuestions.isEmpty)
             Button {
                 store.send(.backToStartButtonTapped)
@@ -72,14 +72,14 @@ struct QuizResultView: View {
                 Text("テスト一覧へ戻る")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.appSecondary)
             Button {
                 store.send(.lectureButtonTapped)
             } label: {
                 Text("講義へ戻る")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.appSecondary)
         }
         .padding()
     }

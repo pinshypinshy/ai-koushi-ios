@@ -22,12 +22,21 @@ struct LectureInputBar: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(AppColor.inputBackground, in: .rect(cornerRadius: 18))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18)
+                        .strokeBorder(AppColor.inputBorder)
+                }
 
             Button {
                 store.send(.sendButtonTapped)
             } label: {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.largeTitle)
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(
+                        store.canSend ? AppColor.primaryButtonText : AppColor.disabledButtonText,
+                        store.canSend ? AppColor.primaryButton : AppColor.disabledButton
+                    )
             }
             .disabled(!store.canSend)
             .accessibilityLabel("送信")

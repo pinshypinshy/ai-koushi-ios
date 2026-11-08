@@ -36,7 +36,10 @@ struct QuizSessionView: View {
                 if session.mode == .review {
                     Text("復習モード")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppColor.reviewMode)
+                        .foregroundStyle(AppColor.reviewModeText)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(AppColor.reviewModeBackground, in: .rect(cornerRadius: 4))
                 }
                 Text("第 \(session.index + 1) 問 / 全 \(session.questions.count) 問")
                     .font(.subheadline)
@@ -64,7 +67,7 @@ struct QuizSessionView: View {
                 Text("テストをやめる")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.appSecondary)
             .disabled(isGrading)
         }
         .padding()
@@ -89,7 +92,7 @@ struct QuizSessionView: View {
             Text(title)
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(.appPrimary)
     }
 
     private var isGrading: Bool {

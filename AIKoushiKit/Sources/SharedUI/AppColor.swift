@@ -71,4 +71,5 @@ public enum AppColor {
     public static let choiceSelected = Color.accentColor
     public static let answerCorrect = Color.green
     public static let answerIncorrect = Color.red
+    public static let reviewMode = Color.orange
 }

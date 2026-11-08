@@ -33,7 +33,8 @@ struct CourseItemView: View {
                 QuizView(
                     store: store.scope(state: \.quiz, action: \.quiz),
                     steps: store.lecture.detail?.steps ?? [],
-                    quizStatus: store.quizStatus
+                    quizStatus: store.quizStatus,
+                    onScrollBoxTouch: onScrollBoxTouch
                 )
                 .courseToolbar(title: title, onMenuTap: onMenuTap)
                 .toolbar(store.showsTabBar ? .visible : .hidden, for: .tabBar)

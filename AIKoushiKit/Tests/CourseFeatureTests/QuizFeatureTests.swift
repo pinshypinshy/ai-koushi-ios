@@ -9,6 +9,7 @@ import APIClient
 import ComposableArchitecture
 @testable import CourseFeature
 import Foundation
+import MarkdownWebView
 import Models
 import Testing
 
@@ -427,6 +428,24 @@ struct QuizFeatureTests {
         await store.receive(\.delegate.lectureRequested)
     }
 
+    // MARK: - linkTapped
+
+    @Test func linkTapped_ブラウザで開く() async {
+        let opened = LockIsolated<URL?>(nil)
+        let url = URL(string: "https://example.com")
+        let store = makeStore(session()) {
+            $0.openURL = OpenURLEffect { url in
+                opened.setValue(url)
+                return true
+            }
+        }
+
+        if let url {
+            await store.send(.linkTapped(url))
+        }
+        #expect(opened.value == url)
+    }
+
     // MARK: - 計算
 
     @Test func overallRate_最新の解答だけを数える() {
@@ -463,7 +482,82 @@ struct QuizFeatureTests {
         #expect(state.stepStats(for: "s2") == .init(questionCount: 1, rate: nil))
     }
 
+    @Test func quizContent_開始画面ではnilになる() {
+        #expect(loaded().quizContent(steps: steps) == nil)
+    }
+
+    @Test(arguments: [QuizFeature.Answer.selecting("b"), .grading("b")])
+    func quizContent_選んだ選択肢に印を付ける(answer: QuizFeature.Answer) {
+        #expect(session(answer: answer).quizContent(steps: steps) == .question(QuizQuestionContent(
+            questionID: "q1",
+            stem: "問題 q1",
+            choices: [
+                QuizChoiceContent(id: "a", label: "A", markdown: "選択肢A", mark: .normal, badge: nil),
+                QuizChoiceContent(id: "b", label: "B", markdown: "選択肢B", mark: .selected, badge: nil),
+            ],
+            explanation: nil
+        )))
+    }
+
+    @Test func quizContent_正解したら正解の選択肢にだけ印を付ける() {
+        let content = session(answer: .answered(correctResult)).quizContent(steps: steps)
+
+        #expect(content == .question(QuizQuestionContent(
+            questionID: "q1",
+            stem: "問題 q1",
+            choices: [
+                QuizChoiceContent(id: "a", label: "A", markdown: "選択肢A", mark: .correct, badge: "正解"),
+                QuizChoiceContent(id: "b", label: "B", markdown: "選択肢B", mark: .normal, badge: nil),
+            ],
+            explanation: QuizExplanationContent(heading: "解説", markdown: "解説", relatedSteps: "関連ステップ：はじめに")
+        )))
+    }
+
+    @Test func quizContent_間違えたら正解とあなたの回答に印を付ける() {
+        guard case let .question(content)? = session(answer: .answered(wrongResult)).quizContent(steps: steps) else {
+            Issue.record("問題の内容ではない")
+            return
+        }
+        #expect(content.choices.map(\.mark) == [.correct, .yourAnswer])
+        #expect(content.choices.map(\.badge) == ["正解", "あなたの回答"])
+    }
+
+    @Test func quizContent_関連するステップが複数なら横断設問と添える() {
+        #expect(answeredQ3().quizContent(steps: steps).explanationRelatedSteps == "関連ステップ：はじめに、固有値（横断設問）")
+    }
+
+    @Test func quizContent_見つからないステップはダッシュにする() {
+        #expect(answeredQ3().quizContent(steps: Array(steps.prefix(1))).explanationRelatedSteps == "関連ステップ：はじめに、—（横断設問）")
+    }
+
+    @Test func quizContent_結果の画面では今回の誤答の問題文を返す() {
+        var state = loaded()
+        state.screen = .result(.init(mode: .normal, questionCount: 3, wrongQuestions: [q2, q3]))
+
+        #expect(state.quizContent(steps: steps) == .result(wrongStems: ["問題 q2", "問題 q3"]))
+    }
+
+    @Test func rate_今回の正解の数と割合を返す() {
+        let result = QuizFeature.QuizResult(mode: .normal, questionCount: 3, wrongQuestions: [q2])
+
+        #expect(result.rate == .init(correctCount: 2, answeredCount: 3))
+        #expect(result.rate.percent == 67)
+    }
+
+    @Test func progress_回答した時点で1問分伸ばす() {
+        #expect(QuizFeature.Session(mode: .normal, questions: questions, index: 1).progress == 1.0 / 3)
+        #expect(QuizFeature.Session(mode: .normal, questions: questions, index: 1, answer: .answered(correctResult)).progress == 2.0 / 3)
+        #expect(QuizFeature.Session(mode: .normal, questions: questions, index: 2, answer: .answered(correctResult)).progress == 1)
+    }
+
     // MARK: - 補助
+
+    private func answeredQ3() -> QuizFeature.State {
+        let result = AttemptResult(questionId: "q3", selectedChoiceId: "a", correctChoiceId: "a", isCorrect: true, explanation: "解説")
+        var state = loaded()
+        state.screen = sessionScreen(index: 2, answer: .answered(result))
+        return state
+    }
 
     private func loaded(latest: [String: Bool] = [:]) -> QuizFeature.State {
         var state = QuizFeature.State(courseID: "c1")
@@ -508,6 +602,18 @@ struct QuizFeatureTests {
             $0.withRandomNumberGenerator = WithRandomNumberGenerator(MaxGenerator())
             withDependencies(&$0)
         }
+    }
+}
+
+private let steps = [
+    ApiStep(id: "s1", orderIndex: 1, title: "はじめに", status: .completed),
+    ApiStep(id: "s3", orderIndex: 3, title: "固有値", status: .completed),
+]
+
+extension QuizContent? {
+    fileprivate var explanationRelatedSteps: String? {
+        guard case let .question(content)? = self else { return nil }
+        return content.explanation?.relatedSteps
     }
 }
 

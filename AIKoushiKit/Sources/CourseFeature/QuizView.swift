@@ -15,6 +15,7 @@ struct QuizView: View {
     let store: StoreOf<QuizFeature>
     let steps: [ApiStep]
     let quizStatus: QuizStatus
+    var onScrollBoxTouch: (Bool) -> Void = { _ in }
 
     var body: some View {
         switch quizStatus {
@@ -33,11 +34,24 @@ struct QuizView: View {
         case .ready:
             if store.bank == nil {
                 notLoadedView
-            } else if store.screen == .start {
-                QuizStartView(store: store, steps: steps)
             } else {
-                // 出題と結果の画面は WebView と一緒に作る（ADR 0007）
-                Color.clear
+                screenView
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var screenView: some View {
+        switch store.screen {
+        case .start:
+            QuizStartView(store: store, steps: steps)
+        case let .session(session):
+            if let content = store.state.quizContent(steps: steps) {
+                QuizSessionView(store: store, session: session, content: content, onScrollBoxTouch: onScrollBoxTouch)
+            }
+        case let .result(result):
+            if let content = store.state.quizContent(steps: steps) {
+                QuizResultView(store: store, result: result, content: content, onScrollBoxTouch: onScrollBoxTouch)
             }
         }
     }
@@ -68,6 +82,26 @@ struct QuizView: View {
     QuizView(store: .preview(latest: [.init(questionId: "q1", isCorrect: false)]), steps: .preview, quizStatus: .ready)
 }
 
+#Preview("出題") {
+    QuizView(store: .preview(screen: .session(.init(mode: .review, questions: .preview, answer: .selecting("a")))), steps: .preview, quizStatus: .ready)
+}
+
+#Preview("回答後") {
+    let result = AttemptResult(questionId: "q1", selectedChoiceId: "b", correctChoiceId: "a", isCorrect: false, explanation: "$AB$ の $(1,1)$ 成分は $1 \\cdot 5 + 2 \\cdot 7 = 19$ です。")
+    QuizView(store: .preview(screen: .session(.init(mode: .normal, questions: .preview, answer: .answered(result)))), steps: .preview, quizStatus: .ready)
+}
+
+#Preview("結果") {
+    QuizView(
+        store: .preview(
+            latest: [.init(questionId: "q1", isCorrect: false)],
+            screen: .result(.init(mode: .normal, questionCount: 2, wrongQuestions: Array([ApiQuestion].preview.prefix(1))))
+        ),
+        steps: .preview,
+        quizStatus: .ready
+    )
+}
+
 #Preview("読み込み中") {
     QuizView(store: Store(initialState: QuizFeature.State(courseID: "c1")) { QuizFeature() }, steps: .preview, quizStatus: .ready)
 }
@@ -81,19 +115,29 @@ struct QuizView: View {
 }
 
 private extension Store<QuizFeature.State, QuizFeature.Action> {
-    static func preview(latest: [AttemptSummary] = []) -> Store {
+    static func preview(latest: [AttemptSummary] = [], screen: QuizFeature.Screen = .start) -> Store {
         var state = QuizFeature.State(courseID: "c1")
-        state.bank = .init(
-            QuizResponse(
-                questions: [
-                    ApiQuestion(id: "q1", stem: "問題1", choices: [], coveredStepIds: ["s1"]),
-                    ApiQuestion(id: "q2", stem: "問題2", choices: [], coveredStepIds: ["s1", "s2"]),
-                ],
-                latestAttempts: latest
-            )
-        )
+        state.bank = .init(QuizResponse(questions: .preview, latestAttempts: latest))
+        state.screen = screen
         return Store(initialState: state) { QuizFeature() }
     }
+}
+
+private extension [ApiQuestion] {
+    static let preview: Self = [
+        ApiQuestion(
+            id: "q1",
+            stem: "$A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}$、$B = \\begin{pmatrix} 5 & 6 \\\\ 7 & 8 \\end{pmatrix}$ のとき、$AB$ の $(1,1)$ 成分はどれか。",
+            choices: [
+                ApiChoice(id: "a", body: "$19$"),
+                ApiChoice(id: "b", body: "$22$"),
+                ApiChoice(id: "c", body: "$43$"),
+                ApiChoice(id: "d", body: "$50$"),
+            ],
+            coveredStepIds: ["s1", "s2"]
+        ),
+        ApiQuestion(id: "q2", stem: "問題2", choices: [ApiChoice(id: "a", body: "はい"), ApiChoice(id: "b", body: "いいえ")], coveredStepIds: ["s1"]),
+    ]
 }
 
 private extension [ApiStep] {

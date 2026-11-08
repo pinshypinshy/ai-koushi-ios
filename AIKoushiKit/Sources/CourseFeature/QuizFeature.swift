@@ -7,6 +7,8 @@
 
 import APIClient
 import ComposableArchitecture
+import Foundation
+import MarkdownWebView
 import Models
 
 /// 講義1つ分の確認テスト
@@ -73,6 +75,10 @@ public struct QuizFeature {
         let mode: Mode
         let questionCount: Int
         let wrongQuestions: [ApiQuestion]
+
+        var rate: AnswerRate {
+            AnswerRate(correctCount: questionCount - wrongQuestions.count, answeredCount: questionCount)
+        }
     }
 
     enum FetchError: Equatable {
@@ -119,6 +125,7 @@ public struct QuizFeature {
         case quitButtonTapped
         case backToStartButtonTapped
         case lectureButtonTapped
+        case linkTapped(URL)
 
         case fetchSucceeded(QuizResponse)
         case fetchFailed(any Error)
@@ -138,6 +145,7 @@ public struct QuizFeature {
     private enum CancelID { case fetch, attempt }
 
     @Dependency(\.apiClient) var apiClient
+    @Dependency(\.openURL) var openURL
     @Dependency(\.withRandomNumberGenerator) var withRandomNumberGenerator
 
     public init() {}
@@ -241,6 +249,11 @@ public struct QuizFeature {
             case .lectureButtonTapped:
                 return .send(.delegate(.lectureRequested))
 
+            case let .linkTapped(url):
+                return .run { [openURL] _ in
+                    await openURL(url)
+                }
+
             case .delegate:
                 return .none
             }
@@ -318,5 +331,66 @@ extension QuizFeature.State {
         let answers = questions.compactMap { bank?.latestIsCorrect[$0.id] }
         guard !answers.isEmpty else { return nil }
         return QuizFeature.AnswerRate(correctCount: answers.filter { $0 }.count, answeredCount: answers.count)
+    }
+}
+
+extension QuizFeature.State {
+    func quizContent(steps: [ApiStep]) -> QuizContent? {
+        switch screen {
+        case .start:
+            nil
+        case let .session(session):
+            .question(session.questionContent(steps: steps))
+        case let .result(result):
+            .result(wrongStems: result.wrongQuestions.map(\.stem))
+        }
+    }
+}
+
+extension QuizFeature.Session {
+    /// 回答した時点で1問分伸ばす（Web版と同じ）
+    var progress: Double {
+        let answeredCount = if case .answered = answer { index + 1 } else { index }
+        return Double(answeredCount) / Double(questions.count)
+    }
+
+    fileprivate func questionContent(steps: [ApiStep]) -> QuizQuestionContent {
+        let question = currentQuestion
+        let choices = question.choices.enumerated().map { offset, choice in
+            let (mark, badge) = mark(of: choice.id)
+            return QuizChoiceContent(
+                id: choice.id,
+                label: Unicode.Scalar(UInt32(65 + offset)).map { String(Character($0)) } ?? "",
+                markdown: choice.body,
+                mark: mark,
+                badge: badge
+            )
+        }
+        let explanation: QuizExplanationContent? = if case let .answered(result) = answer {
+            QuizExplanationContent(heading: "解説", markdown: result.explanation, relatedSteps: relatedSteps(of: question, steps: steps))
+        } else {
+            nil
+        }
+        return QuizQuestionContent(questionID: question.id, stem: question.stem, choices: choices, explanation: explanation)
+    }
+
+    private func mark(of choiceID: ApiChoice.ID) -> (QuizChoiceMark, String?) {
+        switch answer {
+        case let .selecting(selectedID?), let .grading(selectedID):
+            return choiceID == selectedID ? (.selected, nil) : (.normal, nil)
+        case .selecting(nil):
+            return (.normal, nil)
+        case let .answered(result):
+            if choiceID == result.correctChoiceId { return (.correct, "正解") }
+            if choiceID == result.selectedChoiceId { return (.yourAnswer, "あなたの回答") }
+            return (.normal, nil)
+        }
+    }
+
+    private func relatedSteps(of question: ApiQuestion, steps: [ApiStep]) -> String {
+        let titles = question.coveredStepIds
+            .map { id in steps.first { $0.id == id }?.title ?? "—" }
+            .joined(separator: "、")
+        return "関連ステップ：\(titles)" + (question.coveredStepIds.count > 1 ? "（横断設問）" : "")
     }
 }
